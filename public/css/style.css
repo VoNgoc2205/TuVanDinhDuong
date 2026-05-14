@@ -1,0 +1,40 @@
+/* public/css/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    background-color: #F8FAFC;
+}
+
+/* Tùy chỉnh scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+/* Các tùy chỉnh CSS khác mà Tailwind không có sẵn */
+.custom-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+}
+
+aside {
+    box-shadow: none !important;
+    border-right: none !important;
+    background-color: #0F172A;
+    /* Đảm bảo màu tối khít với sidebar */
+}
+
+/* Định nghĩa lớp card cho các khung trắng trong Dashboard */
+.card-shadow {
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+    border-radius: 2.5rem !important;
+    /* Bo góc cực đại giống mẫu */
+}
