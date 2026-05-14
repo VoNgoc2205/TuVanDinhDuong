@@ -40,21 +40,21 @@ $userAvatar = $user['avatar'] ?? 'default.jpg';
     </div>
 
     <?php if (isset($_SESSION['success'])): ?>
-        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl flex items-center gap-3 animate-fade-in">
-            <i class="fa fa-check-circle"></i>
+        <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-green-300 bg-green-50 px-5 py-4 font-extrabold text-emerald-700 animate-fade-in">
+            <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white"><i class="fa fa-check"></i></span>
             <span class="font-bold text-sm"><?= $_SESSION['success'];
                                             unset($_SESSION['success']); ?></span>
         </div>
     <?php endif; ?>
 <?php if (isset($_GET['success'])): ?>
-    <div class="mb-6 px-5 py-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold flex items-center gap-3">
-        <i class="fa fa-check-circle"></i>
+    <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-green-300 bg-green-50 px-5 py-4 font-extrabold text-emerald-700">
+        <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white"><i class="fa fa-check"></i></span>
         Cập nhật thông tin thành công
     </div>
 <?php endif; ?>
 <?php if (isset($_GET['error'])): ?>
-    <div class="mb-6 px-6 py-4 rounded-2xl bg-red-100 text-red-600 font-semibold flex items-center gap-2">
-        <i class="fa fa-exclamation-circle"></i>
+    <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 font-extrabold text-red-700">
+        <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
         Có lỗi xảy ra, vui lòng thử lại
     </div>
 <?php endif; ?>
@@ -147,9 +147,9 @@ $userAvatar = $user['avatar'] ?? 'default.jpg';
         <!-- đặt NGAY TRÊN 3 ô password -->
         <?php if (isset($_SESSION['error'])): ?>
             <div id="errorMsg"
-                class="flex items-center gap-3 bg-red-100 text-red-700 px-5 py-4 rounded-xl mb-6 border border-red-200 shadow-sm">
+                class="mb-6 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 font-extrabold text-red-700">
 
-                <i class="fa fa-times-circle text-red-600"></i>
+                <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
                 <span><?= $_SESSION['error'] ?></span>
             </div>
 
@@ -209,9 +209,9 @@ $userAvatar = $user['avatar'] ?? 'default.jpg';
             </button>
             <?php if (isset($_SESSION['error'])): ?>
                 <div id="errorMsg"
-                    class="flex items-center gap-3 bg-red-100 text-red-700 px-5 py-4 rounded-xl mb-6 border border-red-200 shadow-sm">
+                    class="mb-6 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 font-extrabold text-red-700">
 
-                    <i class="fa fa-times-circle text-red-600"></i>
+                    <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
 
                     <span><?= $_SESSION['error'] ?></span>
                 </div>

@@ -71,7 +71,8 @@ if (session_status() === PHP_SESSION_NONE) {
                 <p class="text-slate-400 text-sm mb-6">Vui lòng điền thông tin tài khoản của bạn</p>
 
                 <?php if (isset($error)): ?>
-                    <div class="bg-red-50 text-red-600 p-3 rounded-xl text-sm font-bold mb-4">
+                    <div class="mb-4 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 text-sm font-extrabold text-red-700">
+                        <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
                         <?php echo $error ?>
                     </div>
                 <?php endif; ?>

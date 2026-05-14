@@ -4,7 +4,6 @@ define("USDA_API_KEY", getenv("USDA_API_KEY") ?: "KEY_USDA");
 
 define("OPENAI_API_KEY", getenv("OPENAI_API_KEY") ?: "KEY_OPENAI");
 define("OPENAI_MODEL", getenv("OPENAI_MODEL") ?: "gpt-4o-mini");
-
 // =========================
 // CALL OPENAI (CORE)
 // =========================

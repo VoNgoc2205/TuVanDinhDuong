@@ -72,7 +72,8 @@ if ($foodCalo == 0) {
 ?>
 
 <?php if (!empty($data['error'])): ?>
-    <div class="mb-4 p-4 bg-red-100 text-red-600 rounded-xl">
+    <div class="mb-4 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 font-extrabold text-red-700">
+        <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
         <?= $data['error'] ?>
     </div>
 <?php endif; ?>
@@ -126,8 +127,8 @@ if ($foodCalo == 0) {
                 </div>
             </header>
 <?php if (isset($_GET['success'])): ?>
-    <div class="mb-6 px-5 py-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold flex items-center gap-3">
-        <i class="fa fa-check-circle"></i>
+    <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-green-300 bg-green-50 px-5 py-4 font-extrabold text-emerald-700">
+        <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white"><i class="fa fa-check"></i></span>
         Đã lưu  thành công
     </div>
 <?php endif; ?>
@@ -259,7 +260,7 @@ if ($foodCalo == 0) {
 function saveMeal() {
 
     if (!window.currentFood) {
-        alert("❌ Không có dữ liệu món ăn");
+        notify("Không có dữ liệu món ăn", "error");
         return;
     }
 
@@ -296,15 +297,15 @@ function saveMeal() {
         console.log(res);
 
         if (res === "OK") {
-            alert("✅ Lưu thành công");
+            notify("Lưu thành công", "success");
             location.reload();
         } else {
-            alert("❌ " + res);
+            notify(res, "error");
         }
     })
     .catch(err => {
         console.error(err);
-        alert("❌ Lỗi server");
+        notify("Lỗi server", "error");
     });
 }
 function toggleNutritionDetails() {
@@ -324,28 +325,6 @@ window.currentFood = {
     ingredients: <?= json_encode($foods, JSON_UNESCAPED_UNICODE) ?>,
     nutrition: <?= json_encode($allNutrition, JSON_UNESCAPED_UNICODE) ?>
 };
-
-
-function showAlert(msg, type = "info") {
-
-    let bg = "bg-slate-200 text-slate-800";
-
-    if (type === "success") bg = "bg-green-100 text-green-700";
-    if (type === "error") bg = "bg-red-100 text-red-600";
-    if (type === "info") bg = "bg-blue-100 text-blue-700";
-
-    const box = document.getElementById("alert-box");
-
-    if (!box) return alert(msg);
-
-    box.className = `mb-4 px-5 py-3 rounded-xl font-semibold ${bg}`;
-    box.innerText = msg;
-    box.classList.remove("hidden");
-
-    setTimeout(() => {
-        box.classList.add("hidden");
-    }, 3000);
-}
 
 function analyzeFood() {
 
@@ -371,3 +350,4 @@ function analyzeFood() {
 }
 
 </script>
+

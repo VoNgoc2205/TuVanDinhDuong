@@ -41,15 +41,15 @@ if (session_status() === PHP_SESSION_NONE) {
                 <div class="p-8 md:p-10">
                     
                     <?php if (isset($error)): ?>
-                        <div class="flex items-center gap-3 bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold mb-6 border border-red-100">
-                            <i class="fa fa-exclamation-circle text-lg"></i>
+                        <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 text-sm font-extrabold text-red-700">
+                            <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
                             <span><?php echo $error ?></span>
                         </div>
                     <?php endif; ?>
 
                     <?php if (isset($success)): ?>
-                        <div class="flex items-center gap-3 bg-emerald-50 text-emerald-600 p-4 rounded-2xl text-sm font-bold mb-6 border border-emerald-100">
-                            <i class="fa fa-check-circle text-lg"></i>
+                        <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-green-300 bg-green-50 px-5 py-4 text-sm font-extrabold text-emerald-700">
+                            <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white"><i class="fa fa-check"></i></span>
                             <span><?php echo $success ?></span>
                         </div>
                     <?php endif; ?>

@@ -1,155 +1,55 @@
 <?php
-// ❌ Tắt lỗi hiển thị ra giao diện
 error_reporting(0);
 ini_set('display_errors', 0);
 ?>
 
-<style>
-body {
-    background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-    font-family: 'Segoe UI', sans-serif;
-}
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Phổ biến</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Thực phẩm phổ biến</h1>
+            <p class="mt-2 text-sm text-slate-500">Danh sách món ăn được dùng nhiều trong hệ thống.</p>
+        </div>
+        <a href="index.php?controller=admin&action=food" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+            <i class="fa fa-utensils"></i> Quản lý thực phẩm
+        </a>
+    </div>
 
-/* TITLE */
-.title {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 25px;
-    color: #2e7d32;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* GRID */
-.food-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-
-/* CARD */
-.food-card {
-    position: relative;
-    background: #fff;
-    border-radius: 15px;
-    padding: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: 0.3s;
-}
-
-.food-card:hover {
-    transform: translateY(-5px);
-}
-
-/* IMAGE */
-.food-card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-/* SEARCH */
-.search-box {
-    width: 420px;
-    margin-bottom: 25px;
-}
-
-/* DELETE BUTTON */
-.btn-delete {
-    position: absolute;
-    bottom: 12px;   /* 👈 xuống dưới */
-    right: 12px;    /* 👈 sát phải */
-
-    width: 36px;
-    height: 36px;
-
-    background: linear-gradient(135deg, #ff5252, #e53935);
-    color: white;
-
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    z-index: 10;
-    transition: 0.3s;
-}
-
-.btn-delete:hover {
-    transform: scale(1.15);
-}
-
-.btn-delete:hover {
-    transform: scale(1.15);
-}
-
-/* TEXT */
-.food-card h5 {
-    margin-top: 10px;
-    font-weight: 600;
-}
-
-.food-card p {
-    color: #666;
-    margin: 5px 0;
-}
-</style>
-
-<!-- FONT AWESOME -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<!-- TITLE -->
-<div class="title">
-    <i class="fa-solid fa-fire"></i> Thực phẩm phổ biến
-</div>
-
-<!-- SEARCH -->
-<form method="GET" class="search-box">
-    <input type="hidden" name="controller" value="admin">
-    <input type="hidden" name="action" value="popular">
-
-    <div class="input-group">
-        <input type="text" name="keyword" class="form-control"
-               placeholder="🔍 Tìm tên thực phẩm..."
-               value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>">
-
-        <button class="btn btn-success">
-            <i class="fa fa-search"></i>
+    <form method="GET" class="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_auto]">
+        <input type="hidden" name="controller" value="admin">
+        <input type="hidden" name="action" value="popular">
+        <input type="text" name="keyword" placeholder="Tìm tên thực phẩm..." value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+        <button class="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700">
+            <i class="fa fa-search"></i> Tìm
         </button>
+    </form>
+
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <?php if (!empty($foods)): ?>
+            <?php foreach ($foods as $food): ?>
+                <?php
+                    $image = !empty($food['hinh_anh']) ? $food['hinh_anh'] : 'public/uploads/default.jpg';
+                    $imageSrc = '/tuvandinhduong/' . ltrim($image, '/');
+                ?>
+                <article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+                    <div class="relative">
+                        <img src="<?= htmlspecialchars($imageSrc) ?>" class="h-44 w-full object-cover" alt="">
+                        <a href="index.php?controller=admin&action=deletePopular&ten=<?= urlencode($food['ten_mon']) ?>" onclick="return confirm('Xóa món này?')" class="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-red-600 shadow-sm transition hover:bg-red-50">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </div>
+                    <div class="p-5">
+                        <h2 class="truncate text-base font-black text-slate-900"><?= htmlspecialchars($food['ten_mon']) ?></h2>
+                        <p class="mt-2 text-sm font-bold text-emerald-600"><?= number_format((float)($food['calo'] ?? 0)) ?> kcal / 100g</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">P: <?= number_format((float)($food['protein'] ?? 0), 1) ?>g</span>
+                            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">Thực phẩm</span>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="col-span-full rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center text-slate-400">Không có dữ liệu thực phẩm phổ biến</div>
+        <?php endif; ?>
     </div>
-</form>
-
-<!-- GRID -->
-<div class="food-grid">
-
-<?php foreach ($foods as $food): ?>
-
-    <div class="food-card">
-
-        <!-- DELETE -->
-       <a href="index.php?controller=admin&action=deletePopular&ten=<?= urlencode($food['ten_mon']) ?>"
-   class="btn-delete"
-   onclick="return confirm('Xóa món này?')">
-    <i class="fa fa-trash"></i>
-</a>
-
-        <!-- IMAGE -->
-        <img src="/tuvandinhduong/<?= !empty($food['hinh_anh']) ? $food['hinh_anh'] : 'public/uploads/default.jpg' ?>">
-
-        <!-- NAME -->
-        <h5><?= htmlspecialchars($food['ten_mon']) ?></h5>
-
-        <!-- CALO -->
-        <p><?= $food['calo'] ?> kcal / 100g</p>
-
-        <!-- TAG -->
-        <span class="badge bg-success">P: <?= $food['protein'] ?>g</span>
-        <span class="badge bg-primary">Thực phẩm</span>
-
-    </div>
-
-<?php endforeach; ?>
-
 </div>

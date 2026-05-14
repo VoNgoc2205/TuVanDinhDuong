@@ -1,9 +1,5 @@
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
 <?php
 $food = $food ?? [];
-
 $id = $food['id'] ?? '';
 $ten_mon = $food['ten_mon'] ?? '';
 $calo = $food['calo'] ?? '';
@@ -11,104 +7,54 @@ $protein = $food['protein'] ?? '';
 $carb = $food['carb'] ?? '';
 $fat = $food['fat'] ?? '';
 $hinh_anh = $food['hinh_anh'] ?? '';
+$imageSrc = !empty($hinh_anh) ? '/' . basename(dirname(__DIR__, 3)) . '/' . ltrim($hinh_anh, '/') : '';
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-green-50 to-lime-50 py-10 px-4">
-
-    <!-- TITLE -->
-    <div class="max-w-5xl mx-auto mb-6">
-        <h2 class="text-2xl font-bold text-green-700 flex items-center gap-2">
-            <i class="fa fa-edit"></i> Cập nhật thực phẩm
-        </h2>
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Thực phẩm</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Cập nhật thực phẩm</h1>
+            <p class="mt-2 text-sm text-slate-500">Chỉnh sửa tên món, chỉ số dinh dưỡng và hình ảnh.</p>
+        </div>
+        <a href="?controller=admin&action=food" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </a>
     </div>
 
-    <!-- FORM -->
-    <form action="?controller=admin&action=updateFood"
-        method="POST"
-        enctype="multipart/form-data"
-        class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
+    <form action="?controller=admin&action=updateFood" method="POST" enctype="multipart/form-data" class="grid gap-5 xl:grid-cols-[1fr_360px]">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+        <input type="hidden" name="current_hinh_anh" value="<?= htmlspecialchars($hinh_anh) ?>">
 
-        <input type="hidden" name="id" value="<?= $id ?>">
-        <input type="hidden" name="current_hinh_anh" value="<?= $hinh_anh ?>">
-
-        <!-- NAME -->
-        <div class="mb-6">
-            <label class="block font-semibold text-green-700 mb-2">Tên thực phẩm</label>
-            <input type="text"
-                name="ten_mon"
-                value="<?= htmlspecialchars($ten_mon) ?>"
-                class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-300 focus:outline-none">
-        </div>
-
-        <!-- NUTRITION -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-            <div>
-                <label class="text-red-500 font-semibold">Calo (kcal)</label>
-                <input type="number" name="calo"
-                    value="<?= htmlspecialchars($calo) ?>"
-                    class="w-full mt-2 px-3 py-3 border rounded-xl focus:ring-2 focus:ring-green-300">
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-5 text-lg font-black text-slate-900">Thông tin món ăn</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="mb-2 block text-sm font-bold text-slate-600">Tên thực phẩm</label>
+                    <input type="text" name="ten_mon" value="<?= htmlspecialchars($ten_mon) ?>" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <?php foreach ([['calo', 'Calo (kcal)', $calo], ['protein', 'Protein (g)', $protein], ['carb', 'Carb (g)', $carb], ['fat', 'Fat (g)', $fat]] as $field): ?>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-600"><?= $field[1] ?></label>
+                            <input type="number" step="0.1" name="<?= $field[0] ?>" value="<?= htmlspecialchars($field[2]) ?>" class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
+        </section>
 
-            <div>
-                <label class="text-blue-500 font-semibold">Protein (g)</label>
-                <input type="number" name="protein"
-                    value="<?= htmlspecialchars($protein) ?>"
-                    class="w-full mt-2 px-3 py-3 border rounded-xl focus:ring-2 focus:ring-green-300">
-            </div>
-
-            <div>
-                <label class="text-yellow-500 font-semibold">Carb (g)</label>
-                <input type="number" name="carb"
-                    value="<?= htmlspecialchars($carb) ?>"
-                    class="w-full mt-2 px-3 py-3 border rounded-xl focus:ring-2 focus:ring-green-300">
-            </div>
-
-            <div>
-                <label class="text-cyan-500 font-semibold">Fat (g)</label>
-                <input type="number" name="fat"
-                    value="<?= htmlspecialchars($fat) ?>"
-                    class="w-full mt-2 px-3 py-3 border rounded-xl focus:ring-2 focus:ring-green-300">
-            </div>
-
-        </div>
-
-        <!-- IMAGE -->
-        <div class="mb-6">
-            <label class="block font-semibold text-green-700 mb-2">Hình ảnh</label>
-
-            <div class="flex items-center gap-4">
-
-                <?php if (!empty($hinh_anh)): ?>
-                    <img src="/tuvandinhduong/<?= htmlspecialchars($hinh_anh) ?>"
-                        class="w-32 h-32 object-cover rounded-xl border shadow">
-                <?php endif; ?>
-
-                <input type="file"
-                    name="hinh_anh"
-                    class="w-full border px-3 py-2 rounded-xl">
-            </div>
-
-            <p class="text-sm text-gray-500 mt-2">
-                Chọn file mới nếu muốn thay đổi ảnh
-            </p>
-        </div>
-
-        <!-- BUTTON -->
-        <div class="flex gap-3">
-
-            <button type="submit"
-                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition">
-                <i class="fa fa-save mr-1"></i> Cập nhật
+        <aside class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-5 text-lg font-black text-slate-900">Hình ảnh</h2>
+            <?php if ($imageSrc): ?>
+                <img src="<?= htmlspecialchars($imageSrc) ?>" class="mb-4 h-44 w-full rounded-3xl border border-slate-200 object-cover" alt="">
+            <?php endif; ?>
+            <label class="block text-sm font-bold text-slate-600">Thay ảnh mới</label>
+            <input type="file" name="hinh_anh" class="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <button type="submit" class="mt-5 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700">
+                <i class="fa fa-save"></i> Cập nhật
             </button>
-
-            <a href="?controller=admin&action=food"
-                class="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold">
-                Hủy
-            </a>
-
-        </div>
-
+            <a href="?controller=admin&action=food" class="mt-3 inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Hủy</a>
+        </aside>
     </form>
-
 </div>

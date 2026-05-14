@@ -27,7 +27,7 @@ class AIService
 
     private function sendOpenAIRequest(array $payload): ?array
     {
-        if (OPENAI_API_KEY === '' || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY') {
+        if (!$this->hasOpenAIApiKey()) {
             error_log('OpenAI API key is not configured.');
             return null;
         }
@@ -69,6 +69,12 @@ class AIService
         }
 
         return is_array($json) ? $json : null;
+    }
+
+    private function hasOpenAIApiKey(): bool
+    {
+        $key = trim((string)OPENAI_API_KEY);
+        return $key !== '' && !in_array($key, ['KEY_OPENAI', 'YOUR_OPENAI_API_KEY'], true);
     }
 
     private function buildOpenAIChatMessages(array $data): array
@@ -201,6 +207,10 @@ class AIService
 
     private function callUSDA(string $endpoint, string $method = 'GET', array $data = [])
     {
+        if (!$this->hasUsdaApiKey()) {
+            return null;
+        }
+
         $url = "https://api.nal.usda.gov/fdc/v1/{$endpoint}?api_key=" . USDA_API_KEY;
         $ch = curl_init();
 
@@ -229,6 +239,12 @@ class AIService
         curl_close($ch);
         $result = json_decode($response, true);
         return is_array($result) ? $result : null;
+    }
+
+    private function hasUsdaApiKey(): bool
+    {
+        $key = trim((string)USDA_API_KEY);
+        return $key !== '' && !in_array($key, ['KEY_USDA', 'YOUR_USDA_API_KEY'], true);
     }
 
     private function extractJson($text)
@@ -296,6 +312,21 @@ class AIService
         return null;
     }
 
+    private function extractDishNameFromQuestion(string $text): ?string
+    {
+        $text = $this->sanitizeText($text);
+        $text = preg_replace('/\b(bao nhiêu|mấy|là bao nhiêu|có bao nhiêu)\s*(calo|kcal|năng lượng)?\b/ui', ' ', $text);
+        $text = preg_replace('/\b(calo|kcal|năng lượng|dinh dưỡng|món này|đây là món gì|là món gì|cho tôi biết|hãy tính|tính giúp|phân tích)\b/ui', ' ', $text);
+        $text = preg_replace('/[?？!.,:;]+/u', ' ', $text);
+        $text = trim(preg_replace('/\s+/u', ' ', $text));
+
+        if ($text === '' || mb_strlen($text, 'UTF-8') > 80) {
+            return null;
+        }
+
+        return $text;
+    }
+
     private function extractItemsFromText($text)
     {
         if (!$text) {
@@ -335,6 +366,10 @@ class AIService
                 continue;
             }
 
+            if (preg_match('/\b(gì|bao nhiêu|như thế nào|làm sao|làm thế nào|cần|nên|có nên|được không|thế nào|vì sao|tại sao|là gì|những gì)\b/ui', $line)) {
+                continue;
+            }
+
             if (preg_match('/[A-Za-zÀ-ỹ0-9\s]+/u', $line)) {
                 $name = trim(preg_replace('/\s{2,}/', ' ', preg_replace('/[^A-Za-zÀ-ỹ0-9\s\-]/u', ' ', $line)));
                 if ($name !== '' && strlen($name) < 100) {
@@ -353,7 +388,116 @@ class AIService
         return $text;
     }
 
+    private function cleanAssistantReply(?string $text): string
+    {
+        $text = trim((string)$text);
+        if ($text === '') {
+            return '';
+        }
+
+        $text = preg_replace('/\*\*(.*?)\*\*/u', '$1', $text);
+        $text = preg_replace('/__(.*?)__/u', '$1', $text);
+        $text = preg_replace('/^\s{0,3}#{1,6}\s*/mu', '', $text);
+        $text = preg_replace('/^\s*[-*]\s+/mu', '• ', $text);
+        $text = preg_replace("/\n{3,}/u", "\n\n", $text);
+        return trim($text);
+    }
+
+    private function understandUserMessage(string $text): ?array
+    {
+        if (!$this->hasOpenAIApiKey()) {
+            return null;
+        }
+
+        $prompt = "Bạn là bộ não hiểu ngôn ngữ cho trợ lý dinh dưỡng tiếng Việt.\n"
+            . "Hãy tự hiểu câu người dùng, không dựa vào từ khóa cố định.\n"
+            . "Phân loại ý định và trích món ăn/khẩu phần nếu người dùng hỏi về một món, một bữa ăn hoặc muốn tính calo.\n"
+            . "Nếu người dùng chỉ hỏi tư vấn chung như nên ăn gì, giảm cân ra sao, bệnh này ăn thế nào, hãy đặt intent=nutrition và answer_mode=advice, items rỗng.\n"
+            . "Nếu là lời chào, đặt intent=greeting. Nếu không liên quan dinh dưỡng, đặt intent=general.\n\n"
+            . "Chỉ trả về JSON hợp lệ theo schema:\n"
+            . "{\"intent\":\"nutrition|greeting|general\",\"answer_mode\":\"nutrition_lookup|advice|chat\",\"dish_name\":\"\",\"items\":[{\"name\":\"\",\"gram\":100}],\"confidence\":0.0}\n\n"
+            . "Quy tắc:\n"
+            . "- items chỉ chứa thực phẩm/món ăn thật sự có trong câu.\n"
+            . "- Nếu người dùng không nói gram, hãy ước tính khẩu phần hợp lý: món chính 250g, đồ uống 250ml quy đổi 250g, nguyên liệu nhỏ 100g.\n"
+            . "- Không bịa món nếu câu không nhắc món cụ thể.\n"
+            . "- dish_name là tên món chính tự nhiên bằng tiếng Việt nếu có.\n"
+            . "Câu người dùng: {$text}";
+
+        $response = $this->callOpenAI([
+            'model' => OPENAI_MODEL,
+            'temperature' => 0.1,
+            'max_output_tokens' => 700,
+            'response_format' => ['type' => 'json_object'],
+            'contents' => [[
+                'parts' => [[
+                    'text' => $prompt
+                ]]
+            ]]
+        ]);
+
+        $json = $this->extractJson($response);
+        if (!is_array($json)) {
+            return null;
+        }
+
+        $intent = $json['intent'] ?? 'general';
+        if (!in_array($intent, ['nutrition', 'greeting', 'general'], true)) {
+            $intent = 'general';
+        }
+
+        $answerMode = $json['answer_mode'] ?? 'chat';
+        if (!in_array($answerMode, ['nutrition_lookup', 'advice', 'chat'], true)) {
+            $answerMode = 'chat';
+        }
+
+        return [
+            'intent' => $intent,
+            'answer_mode' => $answerMode,
+            'dish_name' => trim((string)($json['dish_name'] ?? '')),
+            'items' => $this->normalizeFoodItemsFromArray($json['items'] ?? []),
+            'confidence' => max(0, min(1, floatval($json['confidence'] ?? 0)))
+        ];
+    }
+
+    private function normalizeFoodItemsFromArray($items): array
+    {
+        if (!is_array($items)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(function ($item) {
+            if (is_string($item)) {
+                $name = trim($item);
+                return $name === '' ? null : ['name' => $name, 'gram' => 100];
+            }
+
+            if (!is_array($item) || empty($item['name'])) {
+                return null;
+            }
+
+            $name = trim((string)$item['name']);
+            if ($name === '') {
+                return null;
+            }
+
+            return [
+                'name' => $name,
+                'gram' => max(1, floatval($item['gram'] ?? 100))
+            ];
+        }, $items)));
+    }
+
     private function detectIntent(string $text): string
+    {
+        $understanding = $this->understandUserMessage($text);
+        if (is_array($understanding) && !empty($understanding['intent'])) {
+            return $understanding['intent'];
+        }
+
+        return $this->detectIntentByRules($text);
+    }
+
+    private function detectIntentByRules(string $text): string
     {
         $lower = mb_strtolower($text, 'UTF-8');
 
@@ -481,6 +625,10 @@ class AIService
 
     private function parseFoodListFromMessage(string $message): array
     {
+        if (!$this->hasOpenAIApiKey()) {
+            return [];
+        }
+
         $response = $this->callOpenAI([
             'contents' => [[
                 'parts' => [[
@@ -494,19 +642,15 @@ class AIService
             $items = $this->extractItemsFromText($response);
         }
 
+        if (is_array($items) && isset($items['items'])) {
+            $items = $items['items'];
+        }
+
         if (!is_array($items)) {
             return [];
         }
 
-        return array_values(array_filter(array_map(function ($item) {
-            if (!is_array($item) || empty($item['name'])) {
-                return null;
-            }
-            return [
-                'name' => trim($item['name']),
-                'gram' => max(1, floatval($item['gram'] ?? 100))
-            ];
-        }, $items)));
+        return $this->normalizeFoodItemsFromArray($items);
     }
 
     public function searchUSDAFoods(string $query): array
@@ -580,7 +724,7 @@ class AIService
             }
 
             $nutrition = $this->getUSDANutrition($itemName, $gram);
-            if ($nutrition === null) {
+            if ($nutrition === null || !$this->hasMeaningfulNutrition($nutrition)) {
                 $missingItems[] = [
                     'name' => $itemName,
                     'gram' => $gram
@@ -608,8 +752,9 @@ class AIService
 
         if (!empty($missingItems)) {
             $estimatedItems = $this->estimateNutritionForFoodItems($missingItems, implode(', ', array_column($missingItems, 'name')));
+            $usedEstimatedIndexes = [];
 
-            foreach ($estimatedItems as $estimated) {
+            foreach ($estimatedItems as $estimatedIndex => $estimated) {
                 $item = [
                     'name' => $estimated['name'] ?? '',
                     'gram' => max(1, floatval($estimated['gram'] ?? 100)),
@@ -623,27 +768,45 @@ class AIService
                     'matched' => 'OpenAI estimate'
                 ];
 
+                if ($item['name'] === '' || !$this->hasMeaningfulNutrition($item)) {
+                    continue;
+                }
+
                 $totals['calo'] += $item['calo'];
                 $totals['protein'] += $item['protein'];
                 $totals['carb'] += $item['carb'];
                 $totals['fat'] += $item['fat'];
                 $totals['fiber'] += $item['fiber'];
                 $details[] = $item;
+                $usedEstimatedIndexes[$estimatedIndex] = true;
             }
 
-            if (empty($estimatedItems)) {
-                foreach ($missingItems as $missing) {
-                    $details[] = [
-                        'name' => $missing['name'],
-                        'gram' => $missing['gram'],
-                        'calo' => 0,
-                        'protein' => 0,
-                        'carb' => 0,
-                        'fat' => 0,
-                        'fiber' => 0,
-                        'note' => 'Chưa tìm thấy dữ liệu dinh dưỡng phù hợp'
-                    ];
+            foreach ($missingItems as $missingIndex => $missing) {
+                if (isset($usedEstimatedIndexes[$missingIndex])) {
+                    continue;
                 }
+
+                $fallback = $this->estimateNutritionLocally($missing['name'], $missing['gram']);
+                if ($fallback !== null) {
+                    $totals['calo'] += $fallback['calo'];
+                    $totals['protein'] += $fallback['protein'];
+                    $totals['carb'] += $fallback['carb'];
+                    $totals['fat'] += $fallback['fat'];
+                    $totals['fiber'] += $fallback['fiber'];
+                    $details[] = $fallback;
+                    continue;
+                }
+
+                $details[] = [
+                    'name' => $missing['name'],
+                    'gram' => $missing['gram'],
+                    'calo' => 0,
+                    'protein' => 0,
+                    'carb' => 0,
+                    'fat' => 0,
+                    'fiber' => 0,
+                    'note' => 'Chưa tìm thấy dữ liệu dinh dưỡng phù hợp'
+                ];
             }
         }
 
@@ -657,6 +820,105 @@ class AIService
                 'fiber' => round($totals['fiber'], 2)
             ]
         ];
+    }
+
+    private function hasMeaningfulNutrition(array $nutrition): bool
+    {
+        return floatval($nutrition['calo'] ?? 0) > 0
+            || floatval($nutrition['protein'] ?? 0) > 0
+            || floatval($nutrition['carb'] ?? 0) > 0
+            || floatval($nutrition['fat'] ?? 0) > 0;
+    }
+
+    private function estimateNutritionLocally(string $name, float $gram): ?array
+    {
+        $key = $this->normalizeFoodKey($name);
+        $database = $this->localNutritionPer100g();
+
+        $best = null;
+        $bestScore = 0;
+        foreach ($database as $pattern => $data) {
+            $score = 0;
+            if ($key === $pattern) {
+                $score = 100;
+            } elseif (strpos($key, $pattern) !== false || strpos($pattern, $key) !== false) {
+                $score = 80;
+            } else {
+                foreach (explode(' ', $pattern) as $token) {
+                    if (strlen($token) >= 3 && strpos($key, $token) !== false) {
+                        $score += 15;
+                    }
+                }
+            }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $data;
+            }
+        }
+
+        if ($best === null || $bestScore < 30) {
+            return null;
+        }
+
+        $factor = $gram / 100;
+        return [
+            'name' => $name,
+            'gram' => $gram,
+            'calo' => round($best['calo'] * $factor, 1),
+            'protein' => round($best['protein'] * $factor, 1),
+            'carb' => round($best['carb'] * $factor, 1),
+            'fat' => round($best['fat'] * $factor, 1),
+            'fiber' => round(($best['fiber'] ?? 0) * $factor, 1),
+            'vitamins' => $best['vitamins'] ?? '',
+            'minerals' => $best['minerals'] ?? '',
+            'matched' => 'Ước tính dữ liệu món Việt'
+        ];
+    }
+
+    private function localNutritionPer100g(): array
+    {
+        return [
+            'thit heo quay' => ['calo' => 520, 'protein' => 19, 'carb' => 0, 'fat' => 48, 'fiber' => 0, 'minerals' => 'sắt, kẽm, natri'],
+            'heo quay' => ['calo' => 520, 'protein' => 19, 'carb' => 0, 'fat' => 48, 'fiber' => 0, 'minerals' => 'sắt, kẽm, natri'],
+            'thit ba chi quay' => ['calo' => 520, 'protein' => 19, 'carb' => 0, 'fat' => 48, 'fiber' => 0, 'minerals' => 'sắt, kẽm, natri'],
+            'da heo' => ['calo' => 545, 'protein' => 61, 'carb' => 0, 'fat' => 31, 'fiber' => 0, 'minerals' => 'natri'],
+            'thit heo' => ['calo' => 297, 'protein' => 26, 'carb' => 0, 'fat' => 21, 'fiber' => 0, 'minerals' => 'sắt, kẽm'],
+            'thit ga' => ['calo' => 239, 'protein' => 27, 'carb' => 0, 'fat' => 14, 'fiber' => 0, 'minerals' => 'phốt pho, selen'],
+            'ga luoc' => ['calo' => 190, 'protein' => 28, 'carb' => 0, 'fat' => 8, 'fiber' => 0, 'minerals' => 'phốt pho, selen'],
+            'ga ran' => ['calo' => 320, 'protein' => 20, 'carb' => 11, 'fat' => 22, 'fiber' => 1, 'minerals' => 'natri'],
+            'thit bo' => ['calo' => 250, 'protein' => 26, 'carb' => 0, 'fat' => 15, 'fiber' => 0, 'minerals' => 'sắt, kẽm'],
+            'ca' => ['calo' => 150, 'protein' => 22, 'carb' => 0, 'fat' => 6, 'fiber' => 0, 'minerals' => 'i-ốt, selen'],
+            'tom' => ['calo' => 99, 'protein' => 24, 'carb' => 0.2, 'fat' => 0.3, 'fiber' => 0, 'minerals' => 'i-ốt, selen'],
+            'trung' => ['calo' => 155, 'protein' => 13, 'carb' => 1.1, 'fat' => 11, 'fiber' => 0, 'vitamins' => 'vitamin A, B12, D'],
+            'com trang' => ['calo' => 130, 'protein' => 2.7, 'carb' => 28, 'fat' => 0.3, 'fiber' => 0.4],
+            'com' => ['calo' => 130, 'protein' => 2.7, 'carb' => 28, 'fat' => 0.3, 'fiber' => 0.4],
+            'pho bo' => ['calo' => 90, 'protein' => 5, 'carb' => 12, 'fat' => 2.5, 'fiber' => 0.5, 'minerals' => 'natri, sắt'],
+            'pho ga' => ['calo' => 85, 'protein' => 5.5, 'carb' => 11, 'fat' => 2, 'fiber' => 0.5, 'minerals' => 'natri'],
+            'bun bo' => ['calo' => 95, 'protein' => 5, 'carb' => 13, 'fat' => 2.5, 'fiber' => 0.7, 'minerals' => 'natri, sắt'],
+            'bun' => ['calo' => 110, 'protein' => 1.7, 'carb' => 25, 'fat' => 0.2, 'fiber' => 0.5],
+            'mi' => ['calo' => 138, 'protein' => 4.5, 'carb' => 25, 'fat' => 2, 'fiber' => 1.2],
+            'banh mi' => ['calo' => 265, 'protein' => 9, 'carb' => 49, 'fat' => 3.2, 'fiber' => 2.7],
+            'xoi' => ['calo' => 170, 'protein' => 3.5, 'carb' => 37, 'fat' => 0.5, 'fiber' => 1],
+            'rau' => ['calo' => 35, 'protein' => 2, 'carb' => 7, 'fat' => 0.3, 'fiber' => 3, 'vitamins' => 'vitamin A, C, K'],
+            'salad' => ['calo' => 45, 'protein' => 1.5, 'carb' => 7, 'fat' => 1.5, 'fiber' => 2.5, 'vitamins' => 'vitamin A, C, K'],
+        ];
+    }
+
+    private function normalizeFoodKey(string $text): string
+    {
+        $text = mb_strtolower(trim($text), 'UTF-8');
+        $text = strtr($text, [
+            'à' => 'a', 'á' => 'a', 'ạ' => 'a', 'ả' => 'a', 'ã' => 'a', 'â' => 'a', 'ầ' => 'a', 'ấ' => 'a', 'ậ' => 'a', 'ẩ' => 'a', 'ẫ' => 'a', 'ă' => 'a', 'ằ' => 'a', 'ắ' => 'a', 'ặ' => 'a', 'ẳ' => 'a', 'ẵ' => 'a',
+            'è' => 'e', 'é' => 'e', 'ẹ' => 'e', 'ẻ' => 'e', 'ẽ' => 'e', 'ê' => 'e', 'ề' => 'e', 'ế' => 'e', 'ệ' => 'e', 'ể' => 'e', 'ễ' => 'e',
+            'ì' => 'i', 'í' => 'i', 'ị' => 'i', 'ỉ' => 'i', 'ĩ' => 'i',
+            'ò' => 'o', 'ó' => 'o', 'ọ' => 'o', 'ỏ' => 'o', 'õ' => 'o', 'ô' => 'o', 'ồ' => 'o', 'ố' => 'o', 'ộ' => 'o', 'ổ' => 'o', 'ỗ' => 'o', 'ơ' => 'o', 'ờ' => 'o', 'ớ' => 'o', 'ợ' => 'o', 'ở' => 'o', 'ỡ' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'ụ' => 'u', 'ủ' => 'u', 'ũ' => 'u', 'ư' => 'u', 'ừ' => 'u', 'ứ' => 'u', 'ự' => 'u', 'ử' => 'u', 'ữ' => 'u',
+            'ỳ' => 'y', 'ý' => 'y', 'ỵ' => 'y', 'ỷ' => 'y', 'ỹ' => 'y',
+            'đ' => 'd'
+        ]);
+        $text = preg_replace('/[^a-z0-9\s]+/', ' ', $text);
+        return trim(preg_replace('/\s+/', ' ', $text));
     }
 
     private function isGenericNutritionQuestion(string $text): bool
@@ -715,8 +977,21 @@ class AIService
             return null;
         }
 
-        // Chỉ phân tích nếu thực sự giống mô tả thực phẩm
-        if (!$this->looksLikeFoodDescription($text)) {
+        $understanding = $this->understandUserMessage($text);
+        if (is_array($understanding)) {
+            $items = $understanding['items'] ?? [];
+            if (empty($items) && !empty($understanding['dish_name']) && ($understanding['answer_mode'] ?? '') === 'nutrition_lookup') {
+                $items = [['name' => $understanding['dish_name'], 'gram' => 250]];
+            }
+
+            if (!empty($items)) {
+                return $this->estimateNutritionFromItems($this->standardizeFoods($items, 'AI understood food items'));
+            }
+
+            if (($understanding['intent'] ?? '') !== 'nutrition' || ($understanding['answer_mode'] ?? '') !== 'nutrition_lookup') {
+                return null;
+            }
+        } elseif (!$this->looksLikeFoodDescription($text)) {
             return null;
         }
 
@@ -726,7 +1001,7 @@ class AIService
         }
 
         if (empty($items)) {
-            $dishName = $this->extractDishNameFromText($text);
+            $dishName = $this->extractDishNameFromQuestion($text) ?: $this->extractDishNameFromText($text);
             if ($dishName) {
                 $items = [['name' => $dishName, 'gram' => 250]];
             }
@@ -767,16 +1042,14 @@ class AIService
             }
         }
 
-        $summaryLines = [];
-        foreach ($nutrition['items'] as $item) {
-            $note = !empty($item['matched']) ? " (matched: {$item['matched']})" : '';
-            $summaryLines[] = "- {$item['name']} {$item['gram']}g: {$item['calo']} kcal, {$item['protein']}g đạm, {$item['carb']}g tinh bột, {$item['fat']}g chất béo{$note}";
-        }
-
         $displayDishName = $aiAnalysis['dish_name_vi'] ?? $dishName;
-        $reply = "Tôi xác định được" . ($displayDishName ? " món: {$displayDishName}" : " các thành phần sau") . ":\n" . implode("\n", $summaryLines) . "\nTổng: {$nutrition['totals']['calo']} kcal, {$nutrition['totals']['protein']}g đạm, {$nutrition['totals']['carb']}g tinh bột, {$nutrition['totals']['fat']}g chất béo.";
-        $advice = trim($aiAnalysis['advice'] ?? '');
-        $reply .= "\n\n" . $advice;
+        $reply = $this->generateNaturalNutritionReply(
+            $displayDishName ? "Ảnh món {$displayDishName}" : 'Ảnh món ăn',
+            $nutrition,
+            $aiAnalysis,
+            $profile,
+            $displayDishName ?: ''
+        );
 
         return ['reply' => $reply, 'nutrition' => $nutrition];
     }
@@ -784,17 +1057,32 @@ class AIService
     public function chatNutrition($message, $profile = [], $history = [])
     {
         $message = $this->sanitizeText($message);
-        $intent = $this->detectIntent($message);
+        $understanding = $this->understandUserMessage($message);
+        $intent = is_array($understanding) ? ($understanding['intent'] ?? 'general') : $this->detectIntentByRules($message);
 
-        if ($intent === 'greeting' && !$this->looksLikeFoodDescription($message)) {
+        if ($intent === 'greeting' && empty($understanding['items'])) {
             return [
                 'reply' => 'Chào bạn! Tôi là trợ lý dinh dưỡng AI. Bạn có thể hỏi về calo, thực đơn hoặc cách ăn uống lành mạnh.',
                 'nutrition' => null
             ];
         }
 
-        // Nếu câu hỏi có món ăn/khối lượng/calo thì ưu tiên phân tích chỉ số dinh dưỡng.
-        $nutritionData = $this->getNutritionDataFromText($message);
+        $nutritionData = null;
+        if (is_array($understanding)) {
+            $items = $understanding['items'] ?? [];
+            if (empty($items) && !empty($understanding['dish_name']) && ($understanding['answer_mode'] ?? '') === 'nutrition_lookup') {
+                $items = [['name' => $understanding['dish_name'], 'gram' => 250]];
+            }
+
+            if (!empty($items)) {
+                $nutritionData = $this->estimateNutritionFromItems($this->standardizeFoods($items, 'AI understood food items'));
+            }
+        }
+
+        if ($nutritionData === null) {
+            $nutritionData = $this->getNutritionDataFromText($message);
+        }
+
         if ($nutritionData && !empty($nutritionData['items'])) {
             $aiAnalysis = $this->generateVietnameseNutritionAnalysis($nutritionData['totals'], $nutritionData['items'], $profile, '');
             if (!empty($aiAnalysis['items'])) {
@@ -805,21 +1093,13 @@ class AIService
                 }
             }
 
-            $summary = "Tôi đã phân tích được các thành phần sau:\n";
-            foreach ($nutritionData['items'] as $item) {
-                $summary .= "- {$item['name']} ({$item['gram']}g): {$item['calo']} kcal, {$item['protein']}g đạm, {$item['carb']}g tinh bột, {$item['fat']}g chất béo\n";
-            }
-            $summary .= "Tổng: {$nutritionData['totals']['calo']} kcal, {$nutritionData['totals']['protein']}g đạm, {$nutritionData['totals']['carb']}g tinh bột, {$nutritionData['totals']['fat']}g chất béo.\n";
-            $advice = trim($aiAnalysis['advice'] ?? '');
             return [
-                'reply' => trim($summary . "\n" . $advice),
+                'reply' => $this->generateNaturalNutritionReply($message, $nutritionData, $aiAnalysis, $profile, $understanding['dish_name'] ?? ''),
                 'nutrition' => $nutritionData
             ];
         }
 
-        // Kiểm tra xem đây có phải là câu hỏi chung về dinh dưỡng không
-        if ($this->isGenericNutritionQuestion($message)) {
-            // Gọi OpenAI trực tiếp
+        if ($intent === 'nutrition' || (!is_array($understanding) && $this->isGenericNutritionQuestion($message))) {
             $context = "";
             foreach ($history as $h) {
                 $context .= "{$h['role']}: {$h['message']}\n";
@@ -834,16 +1114,17 @@ class AIService
                 "- Tình trạng sức khỏe: {$health}\n\n" .
                 "Lịch sử hội thoại:\n" . $context . "\n" .
                 "Câu hỏi: {$message}\n\n" .
-                "Hãy trả lời ngắn gọn, dễ hiểu, bằng tiếng Việt.";
+                "Hãy tự hiểu ý người dùng và trả lời tự nhiên bằng tiếng Việt. Không dùng markdown như **in đậm**, heading hoặc bảng. Có thể trả lời theo đoạn văn ngắn hoặc vài ý rõ ràng nếu cần.";
 
             $reply = $this->callOpenAI([
+                'temperature' => 0.7,
                 "contents" => [[
                     "parts" => [["text" => $prompt]]
                 ]]
             ]);
 
             return [
-                'reply' => $reply ?: '',
+                'reply' => $this->cleanAssistantReply($reply),
                 'nutrition' => null
             ];
         }
@@ -863,18 +1144,90 @@ class AIService
             "- Tình trạng sức khỏe: {$health}\n\n" .
             "Lịch sử hội thoại:\n" . $context . "\n" .
             "Câu hỏi: {$message}\n\n" .
-            "Hãy trả lời ngắn gọn, dễ hiểu, bằng tiếng Việt. Nếu người dùng hỏi chung về dinh dưỡng, hãy trả lời với lời khuyên hữu ích. Nếu người dùng hỏi về món ăn hoặc calo, trả lời chính xác và cụ thể.";
+            "Hãy tự hiểu ý người dùng và trả lời tự nhiên, đúng trọng tâm bằng tiếng Việt. Không dùng markdown như **in đậm**, heading hoặc bảng. Nếu câu hỏi liên quan dinh dưỡng thì tư vấn hữu ích; nếu không liên quan, trả lời lịch sự và ngắn gọn.";
 
         $reply = $this->callOpenAI([
+            'temperature' => 0.7,
             "contents" => [[
                 "parts" => [["text" => $prompt]]
             ]]
         ]);
 
         return [
-            'reply' => $reply ?: '',
+            'reply' => $this->cleanAssistantReply($reply),
             'nutrition' => null
         ];
+    }
+
+    private function generateNaturalNutritionReply(string $userMessage, array $nutrition, array $aiAnalysis = [], array $profile = [], string $dishName = ''): string
+    {
+        $totals = $nutrition['totals'] ?? [];
+        $items = $nutrition['items'] ?? [];
+        $payload = json_encode([
+            'user_question' => $userMessage,
+            'dish_name' => $dishName,
+            'totals' => $totals,
+            'items' => array_map(function ($item) {
+                return [
+                    'name' => $item['name'] ?? '',
+                    'gram' => floatval($item['gram'] ?? 0),
+                    'calo' => floatval($item['calo'] ?? 0),
+                    'protein' => floatval($item['protein'] ?? 0),
+                    'carb' => floatval($item['carb'] ?? 0),
+                    'fat' => floatval($item['fat'] ?? 0),
+                    'fiber' => floatval($item['fiber'] ?? 0),
+                ];
+            }, $items),
+            'profile' => $profile,
+            'analysis_hint' => $aiAnalysis['advice'] ?? ''
+        ], JSON_UNESCAPED_UNICODE);
+
+        if ($this->hasOpenAIApiKey()) {
+            $prompt = "Bạn là trợ lý dinh dưỡng AI đang trò chuyện tự nhiên với người dùng Việt Nam.\n"
+                . "Hãy dùng dữ liệu dinh dưỡng bên dưới để tự viết câu trả lời phù hợp với câu hỏi, không theo mẫu cố định.\n"
+                . "Yêu cầu phong cách:\n"
+                . "- Trả lời như người tư vấn thật: tự nhiên, gọn, có ngữ cảnh.\n"
+                . "- Không dùng markdown: không **in đậm**, không heading, không bảng.\n"
+                . "- Không bắt buộc liệt kê tất cả item; chỉ nêu các số quan trọng nhất với câu hỏi.\n"
+                . "- Đa dạng cách diễn đạt giữa các lần hỏi; đừng luôn mở đầu bằng cùng một câu.\n"
+                . "- Nếu món nhiều béo/calo, nhắc nhẹ cách ăn hợp lý. Nếu phù hợp, có thể đưa gợi ý khẩu phần.\n"
+                . "- Không nói rằng bạn dựa trên JSON hay dữ liệu backend.\n"
+                . "- Dài khoảng 2 đến 5 câu, trừ khi người dùng yêu cầu chi tiết.\n\n"
+                . "Dữ liệu: {$payload}";
+
+            $reply = $this->callOpenAI([
+                'model' => OPENAI_MODEL,
+                'temperature' => 0.75,
+                'max_output_tokens' => 650,
+                'contents' => [[
+                    'parts' => [[
+                        'text' => $prompt
+                    ]]
+                ]]
+            ]);
+
+            $reply = $this->cleanAssistantReply($reply);
+            if ($reply !== '') {
+                return $reply;
+            }
+        }
+
+        $firstItem = $items[0] ?? [];
+        $name = trim((string)($dishName ?: ($firstItem['name'] ?? 'món này')));
+        $gramText = !empty($firstItem['gram']) ? ' khoảng ' . round(floatval($firstItem['gram'])) . 'g' : '';
+        $calo = round(floatval($totals['calo'] ?? 0));
+        $protein = round(floatval($totals['protein'] ?? 0), 1);
+        $carb = round(floatval($totals['carb'] ?? 0), 1);
+        $fat = round(floatval($totals['fat'] ?? 0), 1);
+
+        $reply = "{$name}{$gramText} ước tính khoảng {$calo} kcal, gồm {$protein}g đạm, {$carb}g tinh bột và {$fat}g chất béo.";
+        if ($fat > 25 || $calo > 600) {
+            $reply .= " Món này khá giàu năng lượng và chất béo, nên ăn khẩu phần vừa phải và kết hợp thêm rau hoặc món ít dầu để cân bằng hơn.";
+        } else {
+            $reply .= " Khẩu phần này có thể dùng trong bữa ăn, miễn là bạn cân đối thêm rau, chất xơ và tổng calo trong ngày.";
+        }
+
+        return $reply;
     }
 
     public function standardizeFoods(array $items, string $hint = ''): array
@@ -898,6 +1251,10 @@ class AIService
 
     public function estimateNutritionForFoodItems(array $items, string $dishName = '', array $profile = []): array
     {
+        if (!$this->hasOpenAIApiKey()) {
+            return [];
+        }
+
         $normalizedItems = $this->standardizeFoods($items, $dishName);
         if (empty($normalizedItems) && trim($dishName) !== '') {
             $normalizedItems = [[
@@ -974,6 +1331,10 @@ class AIService
 
     public function generateVietnameseNutritionAnalysis(array $totals, array $items, array $profile = [], string $dishName = ''): array
     {
+        if (!$this->hasOpenAIApiKey()) {
+            return [];
+        }
+
         $compactItems = array_map(function ($item) {
             return [
                 'name' => $item['name'] ?? '',

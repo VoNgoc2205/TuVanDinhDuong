@@ -1,156 +1,106 @@
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<?php
+$newUsers = $newUsers ?? 0;
+$newMeals = $newMeals ?? 0;
+$newFoods = $newFoods ?? 0;
+$totalAI = $totalAI ?? 0;
+$activeUsers = $activeUsers ?? 0;
+$lockedUsers = $lockedUsers ?? 0;
+$mealLabels = $mealLabels ?? [];
+$mealData = $mealData ?? [];
+$aiLabels = $aiLabels ?? [];
+$aiData = $aiData ?? [];
+$topFoodLabels = $topFoodLabels ?? [];
+$topFoodData = $topFoodData ?? [];
+?>
 
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Thống kê</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Thống kê hệ thống</h1>
+            <p class="mt-2 text-sm text-slate-500">Theo dõi tài khoản, bữa ăn, dữ liệu món ăn và lượt dùng AI.</p>
+        </div>
+        <form method="GET" class="flex flex-col gap-3 sm:flex-row">
+            <input type="hidden" name="controller" value="admin">
+            <input type="hidden" name="action" value="thongke">
+            <select name="type" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-100">
+                <option value="day" <?= ($_GET['type'] ?? 'day') === 'day' ? 'selected' : '' ?>>Ngày</option>
+                <option value="month" <?= ($_GET['type'] ?? '') === 'month' ? 'selected' : '' ?>>Tháng</option>
+            </select>
+            <input type="date" name="date" value="<?= htmlspecialchars($_GET['date'] ?? date('Y-m-d')) ?>" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-emerald-100">
+            <button class="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700">
+                <i class="fa fa-filter"></i> Lọc
+            </button>
+        </form>
+    </div>
 
-    body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background: #F1F5F9;
-    }
-</style>
+    <?php
+    $cards = [
+        ['label' => 'Người dùng mới', 'value' => $newUsers, 'icon' => 'fa-user-plus', 'bg' => 'bg-blue-50', 'color' => 'text-blue-600'],
+        ['label' => 'Bữa ăn đã lưu', 'value' => $newMeals, 'icon' => 'fa-bowl-food', 'bg' => 'bg-emerald-50', 'color' => 'text-emerald-600'],
+        ['label' => 'Món AI phân tích', 'value' => $newFoods, 'icon' => 'fa-camera', 'bg' => 'bg-amber-50', 'color' => 'text-amber-600'],
+        ['label' => 'Lượt trả lời AI', 'value' => $totalAI, 'icon' => 'fa-robot', 'bg' => 'bg-violet-50', 'color' => 'text-violet-600'],
+        ['label' => 'User hoạt động 30 ngày', 'value' => $activeUsers, 'icon' => 'fa-chart-line', 'bg' => 'bg-cyan-50', 'color' => 'text-cyan-600'],
+        ['label' => 'Tài khoản bị khóa', 'value' => $lockedUsers, 'icon' => 'fa-lock', 'bg' => 'bg-red-50', 'color' => 'text-red-600'],
+    ];
+    ?>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <?php foreach ($cards as $card): ?>
+            <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-slate-400"><?= $card['label'] ?></p>
+                        <p class="mt-2 text-3xl font-black text-slate-900"><?= number_format((float)$card['value']) ?></p>
+                    </div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl <?= $card['bg'] ?> <?= $card['color'] ?>">
+                        <i class="fa <?= $card['icon'] ?>"></i>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
 
-<!-- TITLE -->
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-green-800 flex items-center gap-2">
-        📊 Thống kê hệ thống
-    </h1>
-    <p class="text-gray-500 text-sm mt-1">
-        Tổng quan dữ liệu dinh dưỡng & người dùng
-    </p>
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-1 text-lg font-black text-slate-900">Bữa ăn trong 7 ngày</h2>
+            <p class="mb-4 text-sm text-slate-500">Số lượt người dùng lưu bữa ăn theo ngày.</p>
+            <div class="h-[300px]"><canvas id="mealChart"></canvas></div>
+        </section>
+
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-1 text-lg font-black text-slate-900">Lượt AI trong 7 ngày</h2>
+            <p class="mb-4 text-sm text-slate-500">Số phản hồi AI tạo ra theo ngày.</p>
+            <div class="h-[300px]"><canvas id="aiChart"></canvas></div>
+        </section>
+    </div>
+
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="mb-1 text-lg font-black text-slate-900">Món được phân tích nhiều</h2>
+        <p class="mb-4 text-sm text-slate-500">Top món ăn xuất hiện nhiều nhất trong dữ liệu AI.</p>
+        <div class="h-[320px]"><canvas id="topFoodChart"></canvas></div>
+    </section>
 </div>
 
-<!-- FILTER -->
-<div class="flex flex-wrap gap-3 mb-6">
-
-    <form method="GET" class="flex flex-wrap gap-3 mb-6">
-        <input type="hidden" name="controller" value="admin">
-        <input type="hidden" name="action" value="thongke">
-
-        <select name="type" class="px-4 py-2 rounded-xl border">
-            <option value="day" <?= ($_GET['type'] ?? '') == 'day' ? 'selected' : '' ?>>Ngày</option>
-            <option value="month" <?= ($_GET['type'] ?? '') == 'month' ? 'selected' : '' ?>>Tháng</option>
-        </select>
-
-        <input type="date" name="date"
-            value="<?= $_GET['date'] ?? date('Y-m-d') ?>"
-            class="px-4 py-2 rounded-xl border">
-
-        <button class="px-5 py-2 bg-green-600 text-white rounded-xl">
-            <i class="fa fa-filter mr-1"></i> Lọc
-        </button>
-    </form>
-
-</div>
-
-<!-- STAT CARDS -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
-
-    <!-- USERS -->
-    <div class="bg-gradient-to-r from-green-600 to-green-500 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-        <i class="fa fa-users text-4xl opacity-20 absolute right-4 top-4"></i>
-        <div class="text-sm">Người dùng</div>
-        <div class="text-3xl font-bold"><?= $totalUsers ?? 0 ?></div>
-    </div>
-
-    <!-- PROFILES -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-        <i class="fa fa-file-alt text-4xl opacity-20 absolute right-4 top-4"></i>
-        <div class="text-sm">Hồ sơ</div>
-        <div class="text-3xl font-bold"><?= $totalProfiles ?? 0 ?></div>
-    </div>
-
-    <!-- BMI -->
-    <div class="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-        <i class="fa fa-heart text-4xl opacity-20 absolute right-4 top-4"></i>
-        <div class="text-sm">BMI TB</div>
-        <div class="text-3xl font-bold"><?= number_format($avgBMI ?? 0, 1) ?></div>
-    </div>
-
-    <!-- AI -->
-    <div class="bg-gradient-to-r from-orange-500 to-orange-400 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-        <i class="fa fa-robot text-4xl opacity-20 absolute right-4 top-4"></i>
-        <div class="text-sm">AI dùng</div>
-        <div class="text-3xl font-bold"><?= $totalAI ?? 0 ?></div>
-    </div>
-
-</div>
-
-<!-- CHARTS -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-    <!-- PIE -->
-    <div class="bg-white p-5 rounded-2xl shadow-md">
-        <h2 class="font-semibold text-gray-700 mb-3">🎯 Phân bố mục tiêu</h2>
-        <canvas id="pieChart"></canvas>
-    </div>
-
-    <!-- LINE -->
-    <div class="bg-white p-5 rounded-2xl shadow-md">
-        <h2 class="font-semibold text-gray-700 mb-3">📈 Tăng trưởng user</h2>
-        <canvas id="lineChart"></canvas>
-    </div>
-
-    <!-- BAR -->
-    <div class="bg-white p-5 rounded-2xl shadow-md">
-        <h2 class="font-semibold text-gray-700 mb-3">🥗 Dinh dưỡng TB</h2>
-        <canvas id="barChart"></canvas>
-    </div>
-
-</div>
-
-</div>
-
-<!-- CHART JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    // PIE
-    new Chart(document.getElementById('pieChart'), {
-        type: 'pie',
-        data: {
-            labels: <?= json_encode($goalLabels ?? []) ?>,
-            datasets: [{
-                data: <?= json_encode($goalValues ?? []) ?>,
-                backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444']
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
+Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+const gridColor = '#f1f5f9';
 
-    // LINE
-    new Chart(document.getElementById('lineChart'), {
-        type: 'line',
-        data: {
-            labels: <?= json_encode($userLabels ?? []) ?>,
-            datasets: [{
-                label: 'Users',
-                data: <?= json_encode($userData ?? []) ?>,
-                borderColor: '#16a34a',
-                backgroundColor: 'rgba(22,163,74,0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
+new Chart(document.getElementById('mealChart'), {
+    type: 'bar',
+    data: { labels: <?= json_encode($mealLabels, JSON_UNESCAPED_UNICODE) ?>, datasets: [{ data: <?= json_encode($mealData) ?>, backgroundColor: '#10b981', borderRadius: 10 }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: gridColor }, beginAtZero: true }, x: { grid: { display: false } } } }
+});
 
-    // BAR
-    new Chart(document.getElementById('barChart'), {
-        type: 'bar',
-        data: {
-            labels: ['Protein', 'Carb', 'Fat'],
-            datasets: [{
-                data: <?= json_encode($macroData ?? [0, 0, 0]) ?>,
-                backgroundColor: ['#3b82f6', '#22c55e', '#f97316']
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
+new Chart(document.getElementById('aiChart'), {
+    type: 'line',
+    data: { labels: <?= json_encode($aiLabels, JSON_UNESCAPED_UNICODE) ?>, datasets: [{ data: <?= json_encode($aiData) ?>, borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.12)', fill: true, tension: 0.35 }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: gridColor }, beginAtZero: true }, x: { grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('topFoodChart'), {
+    type: 'bar',
+    data: { labels: <?= json_encode($topFoodLabels, JSON_UNESCAPED_UNICODE) ?>, datasets: [{ data: <?= json_encode($topFoodData) ?>, backgroundColor: '#2563eb', borderRadius: 10 }] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor }, beginAtZero: true }, y: { grid: { display: false } } } }
+});
 </script>

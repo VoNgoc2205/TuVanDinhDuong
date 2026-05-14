@@ -75,20 +75,21 @@ $firstChar = strtoupper(mb_substr($name, 0, 1));
                     <span class="font-semibold">Lịch sử bữa ăn</span>
                 </a>
 
-                <a href="index.php?controller=stats&action=index"
-                    class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-base
-                    <?= $currentController == 'stats' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'hover:bg-slate-800 hover:text-white' ?>">
-
-                    <i class="fa fa-chart-line text-lg"></i>
-                    <span class="font-semibold">Thống kê của tôi</span>
-                </a>
-
+                
                 <a href="index.php?controller=chatbox&action=chatbox"
                     class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-base
                     <?= $currentController == 'chatbox' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'hover:bg-slate-800 hover:text-white' ?>">
 
                     <i class="fa fa-robot text-lg"></i>
                     <span class="font-semibold">Chat AI dinh dưỡng</span>
+                </a>
+
+                <a href="index.php?controller=stats&action=index"
+                    class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-base
+                    <?= $currentController == 'stats' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'hover:bg-slate-800 hover:text-white' ?>">
+
+                    <i class="fa fa-chart-line text-lg"></i>
+                    <span class="font-semibold">Thống kê của tôi</span>
                 </a>
 
                 <a href="index.php?controller=feedback&action=index"

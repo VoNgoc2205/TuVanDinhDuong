@@ -9,6 +9,15 @@ class UserModel
     {
         $db = new Database();
         $this->conn = $db->getConnection();
+        $this->ensureStatusColumn();
+    }
+
+    private function ensureStatusColumn()
+    {
+        $result = $this->conn->query("SHOW COLUMNS FROM users LIKE 'status'");
+        if ($result && $result->num_rows === 0) {
+            $this->conn->query("ALTER TABLE users ADD COLUMN status ENUM('active','locked') NOT NULL DEFAULT 'active' AFTER role");
+        }
     }
 
     public function createUser($name, $phone, $email, $password)

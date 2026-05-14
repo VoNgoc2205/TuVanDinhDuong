@@ -1,9 +1,5 @@
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
 <?php
 $food = $food ?? [];
-
 $id = $food['id'] ?? '';
 $ten_mon = $food['ten_mon'] ?? '';
 $calo = $food['calo'] ?? '';
@@ -13,105 +9,50 @@ $fat = $food['fat'] ?? '';
 $image = $food['image'] ?? '';
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-green-50 to-lime-50 py-10 px-4">
-
-    <!-- BACK -->
-    <a href="?controller=admin&action=food"
-        class="inline-flex items-center gap-2 text-green-700 font-medium mb-6 hover:text-green-900 transition">
-        <i class="fa fa-arrow-left"></i> Quay lại danh sách
-    </a>
-
-    <!-- CARD -->
-    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
-
-        <!-- TITLE -->
-        <h2 class="text-2xl font-bold text-green-700 mb-8 text-center">
-            <i class="fa <?= !empty($id) ? 'fa-edit' : 'fa-plus-circle' ?>"></i>
-            <?= !empty($id) ? 'Cập nhật thực phẩm' : 'Thêm thực phẩm mới' ?>
-        </h2>
-
-        <form method="POST" enctype="multipart/form-data" class="space-y-6">
-
-            <?php if (!empty($id)): ?>
-                <input type="hidden" name="id" value="<?= $id ?>">
-            <?php endif; ?>
-
-            <!-- NAME -->
-            <div>
-                <label class="block font-semibold text-green-700 mb-2">Tên thực phẩm</label>
-                <input type="text"
-                    name="ten_mon"
-                    value="<?= htmlspecialchars($ten_mon) ?>"
-                    class="w-full px-4 py-3 rounded-xl border border-green-100 focus:ring-2 focus:ring-green-400 focus:outline-none"
-                    required>
-            </div>
-
-            <!-- MACRO -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-                <div>
-                    <label class="block text-red-500 font-semibold mb-2">Calo</label>
-                    <input type="number" name="calo"
-                        value="<?= htmlspecialchars($calo) ?>"
-                        class="w-full px-3 py-3 rounded-xl border focus:ring-2 focus:ring-green-300">
-                </div>
-
-                <div>
-                    <label class="block text-blue-500 font-semibold mb-2">Protein</label>
-                    <input type="number" name="protein"
-                        value="<?= htmlspecialchars($protein) ?>"
-                        class="w-full px-3 py-3 rounded-xl border focus:ring-2 focus:ring-green-300">
-                </div>
-
-                <div>
-                    <label class="block text-yellow-500 font-semibold mb-2">Carb</label>
-                    <input type="number" name="carb"
-                        value="<?= htmlspecialchars($carb) ?>"
-                        class="w-full px-3 py-3 rounded-xl border focus:ring-2 focus:ring-green-300">
-                </div>
-
-                <div>
-                    <label class="block text-cyan-500 font-semibold mb-2">Fat</label>
-                    <input type="number" name="fat"
-                        value="<?= htmlspecialchars($fat) ?>"
-                        class="w-full px-3 py-3 rounded-xl border focus:ring-2 focus:ring-green-300">
-                </div>
-
-            </div>
-
-            <!-- IMAGE -->
-            <div>
-                <label class="block font-semibold text-green-700 mb-2">Hình ảnh</label>
-
-                <div class="flex items-center gap-4">
-
-                    <?php if (!empty($image)): ?>
-                        <img src="/tuvandinhduong/public/uploads/food/<?= htmlspecialchars($image) ?>"
-                            class="w-28 h-28 object-cover rounded-xl border shadow">
-                    <?php endif; ?>
-
-                    <input type="file"
-                        name="image"
-                        class="w-full px-3 py-2 border rounded-xl">
-                </div>
-            </div>
-
-            <!-- BUTTON -->
-            <div class="flex gap-3 pt-4">
-
-                <button type="submit"
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition">
-                    <i class="fa fa-save mr-1"></i> Lưu thông tin
-                </button>
-
-                <a href="?controller=admin&action=food"
-                    class="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 font-semibold">
-                    Hủy
-                </a>
-
-            </div>
-
-        </form>
-
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Thực phẩm</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900"><?= !empty($id) ? 'Cập nhật thực phẩm' : 'Thêm thực phẩm mới' ?></h1>
+            <p class="mt-2 text-sm text-slate-500">Biểu mẫu nhập liệu thực phẩm và chỉ số dinh dưỡng.</p>
+        </div>
+        <a href="?controller=admin&action=food" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </a>
     </div>
+
+    <form method="POST" enctype="multipart/form-data" class="grid gap-5 xl:grid-cols-[1fr_340px]">
+        <?php if (!empty($id)): ?>
+            <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
+        <?php endif; ?>
+
+        <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="space-y-4">
+                <div>
+                    <label class="mb-2 block text-sm font-bold text-slate-600">Tên thực phẩm</label>
+                    <input type="text" name="ten_mon" value="<?= htmlspecialchars($ten_mon) ?>" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <?php foreach ([['calo', 'Calo', $calo], ['protein', 'Protein', $protein], ['carb', 'Carb', $carb], ['fat', 'Fat', $fat]] as $field): ?>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-600"><?= $field[1] ?></label>
+                            <input type="number" step="0.1" name="<?= $field[0] ?>" value="<?= htmlspecialchars($field[2]) ?>" class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+
+        <aside class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-lg font-black text-slate-900">Ảnh thực phẩm</h2>
+            <?php if (!empty($image)): ?>
+                <img src="/tuvandinhduong/public/uploads/food/<?= htmlspecialchars($image) ?>" class="mb-4 h-40 w-full rounded-3xl object-cover" alt="">
+            <?php endif; ?>
+            <input type="file" name="image" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <button type="submit" class="mt-5 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700">
+                <i class="fa fa-save"></i> Lưu thông tin
+            </button>
+            <a href="?controller=admin&action=food" class="mt-3 inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Hủy</a>
+        </aside>
+    </form>
 </div>

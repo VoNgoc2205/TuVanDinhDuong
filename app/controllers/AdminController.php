@@ -17,7 +17,16 @@ class AdminController
 
         $db = new Database();
         $this->conn = $db->getConnection();
+        $this->ensureUserStatusColumn();
         $this->model = new AdminModel();
+    }
+
+    private function ensureUserStatusColumn()
+    {
+        $result = $this->conn->query("SHOW COLUMNS FROM users LIKE 'status'");
+        if ($result && $result->num_rows === 0) {
+            $this->conn->query("ALTER TABLE users ADD COLUMN status ENUM('active','locked') NOT NULL DEFAULT 'active' AFTER role");
+        }
     }
 
     // ================= DASHBOARD =================
@@ -114,8 +123,9 @@ class AdminController
     {
         $conn = $this->conn;
 
-        $keyword = $_GET['keyword'] ?? '';
-        $role = $_GET['role'] ?? '';
+        $keyword = trim($_GET['keyword'] ?? '');
+        $role = trim($_GET['role'] ?? '');
+        $status = trim($_GET['status'] ?? '');
 
         $sql = "SELECT * FROM users WHERE 1=1";
 
@@ -124,9 +134,14 @@ class AdminController
             $sql .= " AND (name LIKE '%$keyword%' OR email LIKE '%$keyword%')";
         }
 
-        if (!empty($role)) {
+        if (in_array($role, ['admin', 'user'], true)) {
             $role = $conn->real_escape_string($role);
             $sql .= " AND role = '$role'";
+        }
+
+        if (in_array($status, ['active', 'locked'], true)) {
+            $status = $conn->real_escape_string($status);
+            $sql .= " AND status = '$status'";
         }
 
         $sql .= " ORDER BY id DESC";
@@ -138,6 +153,7 @@ class AdminController
         }
 
         $users = $result->fetch_all(MYSQLI_ASSOC);
+        $totalUsers = count($users);
 
         ob_start();
         require "app/views/admin/QLNguoiDung.php";
@@ -167,6 +183,14 @@ class AdminController
 
         header("Location: " . ($_SERVER['HTTP_REFERER'] ?? "index.php?controller=admin&action=feedback"));
         exit;
+    }
+
+    public function addUser()
+    {
+        ob_start();
+        require "app/views/admin/add_user.php";
+        $content = ob_get_clean();
+        require "app/views/layout.php";
     }
 
     public function storeUser()
@@ -202,19 +226,98 @@ class AdminController
         header("Location: index.php?controller=admin&action=user");
     }
 
+    public function updateUserRole()
+    {
+        $id = intval($_POST['id'] ?? 0);
+        $role = $_POST['role'] ?? 'user';
+        if ($id > 0 && $id !== (int)($_SESSION['user']['id'] ?? 0) && in_array($role, ['admin', 'user'], true)) {
+            $stmt = $this->conn->prepare("UPDATE users SET role = ? WHERE id = ?");
+            $stmt->bind_param("si", $role, $id);
+            $stmt->execute();
+        }
+
+        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? "index.php?controller=admin&action=user"));
+        exit;
+    }
+
+    public function toggleUserStatus()
+    {
+        $id = intval($_POST['id'] ?? 0);
+        $status = $_POST['status'] ?? 'active';
+        if ($id > 0 && $id !== (int)($_SESSION['user']['id'] ?? 0) && in_array($status, ['active', 'locked'], true)) {
+            $stmt = $this->conn->prepare("UPDATE users SET status = ? WHERE id = ?");
+            $stmt->bind_param("si", $status, $id);
+            $stmt->execute();
+        }
+
+        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? "index.php?controller=admin&action=user"));
+        exit;
+    }
+
+    public function editUser()
+    {
+        $id = intval($_GET['id'] ?? 0);
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+
+        if (!$user) {
+            header("Location: index.php?controller=admin&action=user");
+            exit;
+        }
+
+        ob_start();
+        require "app/views/admin/edit_user.php";
+        $content = ob_get_clean();
+        require "app/views/layout.php";
+    }
+
+    public function updateUser()
+    {
+        $id = intval($_POST['id'] ?? 0);
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $role = $_POST['role'] ?? 'user';
+        $status = $_POST['status'] ?? 'active';
+
+        if ($id > 0 && $name !== '' && $email !== '' && in_array($role, ['admin', 'user'], true) && in_array($status, ['active', 'locked'], true)) {
+            if ($id === (int)($_SESSION['user']['id'] ?? 0)) {
+                $status = 'active';
+            }
+            $stmt = $this->conn->prepare("UPDATE users SET name = ?, email = ?, role = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("ssssi", $name, $email, $role, $status, $id);
+            $stmt->execute();
+        }
+
+        header("Location: index.php?controller=admin&action=user");
+        exit;
+    }
+
     // ================= FOOD =================
     public function food()
     {
         $conn = $this->conn;
 
-        $keyword = $_GET['keyword'] ?? '';
-        $sql = "SELECT * FROM ketqua_ai";
+        $keyword = trim($_GET['keyword'] ?? '');
+        $page = max(1, intval($_GET['page'] ?? 1));
+        $perPage = 10;
+        $offset = ($page - 1) * $perPage;
+        $where = "";
 
         if (!empty($keyword)) {
             $keyword = $conn->real_escape_string($keyword);
-            $sql .= " WHERE ten_mon LIKE '%$keyword%'";
+            $where = " WHERE ten_mon LIKE '%$keyword%'";
         }
 
+        $totalFoods = (int)($conn->query("SELECT COUNT(*) AS total FROM ketqua_ai $where")->fetch_assoc()['total'] ?? 0);
+        $totalPages = max(1, (int)ceil($totalFoods / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+            $offset = ($page - 1) * $perPage;
+        }
+
+        $sql = "SELECT * FROM ketqua_ai $where ORDER BY id DESC LIMIT $perPage OFFSET $offset";
         $result = $conn->query($sql);
         $foods = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -362,20 +465,34 @@ class AdminController
             $filterUsers = "DATE_FORMAT(created_at, '%Y-%m') = '" . date('Y-m', strtotime($date)) . "'";
             $filterProfiles = $filterUsers;
             $filterAI = $filterUsers;
+            $filterMeals = "DATE_FORMAT(thoigian, '%Y-%m') = '" . date('Y-m', strtotime($date)) . "'";
         } else {
             $filterUsers = "DATE(created_at) = '" . date('Y-m-d', strtotime($date)) . "'";
             $filterProfiles = $filterUsers;
             $filterAI = $filterUsers;
+            $filterMeals = "DATE(thoigian) = '" . date('Y-m-d', strtotime($date)) . "'";
         }
 
         // ===== TOTAL =====
-        $totalUsers = $conn->query("SELECT COUNT(*) as total FROM users WHERE $filterUsers")
+        $newUsers = $conn->query("SELECT COUNT(*) as total FROM users WHERE $filterUsers")
             ->fetch_assoc()['total'] ?? 0;
 
-        $totalProfiles = $conn->query("SELECT COUNT(*) as total FROM user_profiles WHERE $filterProfiles")
+        $newMeals = $conn->query("SELECT COUNT(*) as total FROM meals WHERE $filterMeals")
+            ->fetch_assoc()['total'] ?? 0;
+
+        $newFoods = $conn->query("SELECT COUNT(*) as total FROM ketqua_ai WHERE $filterUsers")
             ->fetch_assoc()['total'] ?? 0;
 
         $totalAI = $conn->query("SELECT COUNT(*) as total FROM chat_messages WHERE role='ai' AND $filterAI")
+            ->fetch_assoc()['total'] ?? 0;
+
+        $activeUsers = $conn->query("
+            SELECT COUNT(DISTINCT user_id) as total
+            FROM meals
+            WHERE thoigian >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ")->fetch_assoc()['total'] ?? 0;
+
+        $lockedUsers = $conn->query("SELECT COUNT(*) as total FROM users WHERE status = 'locked'")
             ->fetch_assoc()['total'] ?? 0;
 
         // ===== BMI =====
@@ -432,6 +549,40 @@ class AdminController
             round($macro['carb'] ?? 0, 1),
             round($macro['fat'] ?? 0, 1),
         ];
+
+        $mealLabels = [];
+        $mealData = [];
+        $aiLabels = [];
+        $aiData = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $day = date('Y-m-d', strtotime("-$i days"));
+            $mealLabels[] = date('d/m', strtotime($day));
+            $aiLabels[] = date('d/m', strtotime($day));
+
+            $mealData[] = (int)($conn->query("
+                SELECT COUNT(*) as total
+                FROM meals
+                WHERE DATE(thoigian) = '$day'
+            ")->fetch_assoc()['total'] ?? 0);
+
+            $aiData[] = (int)($conn->query("
+                SELECT COUNT(*) as total
+                FROM chat_messages
+                WHERE role='ai' AND DATE(created_at) = '$day'
+            ")->fetch_assoc()['total'] ?? 0);
+        }
+
+        $topFoodRows = $conn->query("
+            SELECT COALESCE(NULLIF(ten_mon, ''), 'Không rõ') AS ten_mon, COUNT(*) AS total
+            FROM ketqua_ai
+            GROUP BY COALESCE(NULLIF(ten_mon, ''), 'Không rõ')
+            ORDER BY total DESC
+            LIMIT 6
+        ")->fetch_all(MYSQLI_ASSOC);
+
+        $topFoodLabels = array_map(fn($item) => $item['ten_mon'], $topFoodRows);
+        $topFoodData = array_map(fn($item) => (int)$item['total'], $topFoodRows);
 
         // ===== VIEW =====
         ob_start();
