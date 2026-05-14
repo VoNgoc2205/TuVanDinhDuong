@@ -20,11 +20,13 @@ $categoryLabels = [
             <p class="mt-2 text-slate-500">Mọi phản hồi của bạn sẽ được gửi về trang quản trị để quản trị viên theo dõi và xử lý.</p>
 
             <?php if ($success): ?>
-                <div class="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+                <div class="mt-5 flex items-center gap-3 rounded-[14px] border border-green-300 bg-green-50 px-5 py-4 text-sm font-extrabold text-emerald-700">
+                    <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white"><i class="fa fa-check"></i></span>
                     Phản hồi của bạn đã được gửi thành công.
                 </div>
             <?php elseif ($error): ?>
-                <div class="mt-5 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+                <div class="mt-5 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 text-sm font-extrabold text-red-700">
+                    <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
                     Vui lòng nhập đầy đủ tiêu đề và nội dung phản hồi.
                 </div>
             <?php endif; ?>

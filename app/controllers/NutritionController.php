@@ -167,6 +167,22 @@ require "app/views/layout.php";
             'kcal_target' => intval($_POST['kcal_target'] ?? 2000)
         ];
 
+        $weightGoalValidation = $this->model->validateProfileWeightGoal(
+            $user_id,
+            $_POST['cannang'] ?? 0,
+            $data['muctieu_cannang'],
+            $data['muctieu']
+        );
+
+        if (!$weightGoalValidation['valid']) {
+            $_SESSION['flash'] = [
+                'type' => 'error',
+                'message' => $weightGoalValidation['message']
+            ];
+            header("Location: index.php?controller=nutrition&action=edit&id=" . $user_id);
+            exit;
+        }
+
         $this->model->updateProfile($user_id, $data);
 
         // Lưu phân tích hồ sơ bệnh án nếu có
@@ -220,9 +236,31 @@ require "app/views/layout.php";
 
         // lưu cân nặng
         if (!empty($_POST['cannang'])) {
-            $this->model->saveWeight($user_id, $_POST['cannang']);
+            $weight = floatval($_POST['cannang']);
+            $validation = $this->model->validateWeightChange($user_id, $weight);
+            if (!$validation['valid']) {
+                $_SESSION['flash'] = [
+                    'type' => 'error',
+                    'message' => $validation['message']
+                ];
+                header("Location: index.php?controller=nutrition&action=edit&id=" . $user_id);
+                exit;
+            }
+
+            if (!$this->model->saveWeight($user_id, $weight)) {
+                $_SESSION['flash'] = [
+                    'type' => 'error',
+                    'message' => 'Không thể lưu cân nặng. Vui lòng thử lại.'
+                ];
+                header("Location: index.php?controller=nutrition&action=edit&id=" . $user_id);
+                exit;
+            }
         }
 
+        $_SESSION['flash'] = [
+            'type' => 'success',
+            'message' => 'Đã cập nhật hồ sơ dinh dưỡng.'
+        ];
         header("Location: index.php?controller=nutrition&action=list");
     }
 
@@ -231,24 +269,34 @@ require "app/views/layout.php";
     // =========================
     public function saveWeight()
     {
+        header('Content-Type: application/json; charset=utf-8');
         $user = SessionHelper::user();
 
         if (!$user) {
-            echo "error";
+            echo json_encode(['success' => false, 'message' => 'Bạn cần đăng nhập lại.'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
         $user_id = $user['id'];
-        $weight = $_POST['cannang'] ?? 0;
+        $weight = floatval($_POST['cannang'] ?? 0);
 
         if ($weight <= 0) {
-            echo "error";
+            echo json_encode(['success' => false, 'message' => 'Nhập cân nặng hợp lệ.'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
-        $this->model->saveWeight($user_id, $weight);
+        $validation = $this->model->validateWeightChange($user_id, $weight);
+        if (!$validation['valid']) {
+            echo json_encode(['success' => false, 'message' => $validation['message']], JSON_UNESCAPED_UNICODE);
+            return;
+        }
 
-        echo "success";
+        $saved = $this->model->saveWeight($user_id, $weight);
+
+        echo json_encode([
+            'success' => $saved,
+            'message' => $saved ? 'Đã lưu cân nặng.' : 'Lưu thất bại.'
+        ], JSON_UNESCAPED_UNICODE);
     }
 
     // =========================

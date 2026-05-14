@@ -89,6 +89,11 @@ class NutritionModel
     // =========================
     public function saveWeight($user_id, $weight)
     {
+        $validation = $this->validateWeightChange($user_id, $weight);
+        if (!$validation['valid']) {
+            return false;
+        }
+
         $sql = "INSERT INTO weight_logs (user_id, can_nang, ngay) VALUES (?, ?, NOW())";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("id", $user_id, $weight);
@@ -99,6 +104,134 @@ class NutritionModel
         }
 
         return $success;
+    }
+
+    public function validateWeightChange($user_id, $weight): array
+    {
+        $weight = floatval($weight);
+        if ($weight <= 0 || $weight < 20 || $weight > 300) {
+            return [
+                'valid' => false,
+                'message' => 'Cân nặng không hợp lệ. Vui lòng nhập trong khoảng 20 - 300 kg.'
+            ];
+        }
+
+        $latest = $this->getLatestWeightLog($user_id);
+        if (!$latest) {
+            return ['valid' => true, 'message' => ''];
+        }
+
+        $latestWeight = floatval($latest['can_nang'] ?? 0);
+        if ($latestWeight <= 0) {
+            return ['valid' => true, 'message' => ''];
+        }
+
+        $latestDate = new DateTime($latest['ngay']);
+        $today = new DateTime('now');
+        $days = max(1, (int)$latestDate->diff($today)->days);
+        $maxChange = $days * 1.0;
+        $change = abs($weight - $latestWeight);
+
+        if ($change > $maxChange) {
+            return [
+                'valid' => false,
+                'message' => "Cân nặng thay đổi quá nhanh. So với lần gần nhất ({$latestWeight} kg), trong {$days} ngày chỉ nên thay đổi tối đa {$maxChange} kg."
+            ];
+        }
+
+        return ['valid' => true, 'message' => ''];
+    }
+
+    public function validateProfileWeightGoal($user_id, $currentWeight, $targetWeight, string $goal): array
+    {
+        $currentWeight = floatval($currentWeight);
+        $targetWeight = floatval($targetWeight);
+        $goalType = $this->normalizeGoalType($goal);
+
+        if ($currentWeight <= 0) {
+            $latest = $this->getLatestWeightLog($user_id);
+            $currentWeight = floatval($latest['can_nang'] ?? 0);
+        }
+
+        if ($currentWeight < 20 || $currentWeight > 300) {
+            return [
+                'valid' => false,
+                'message' => 'Cân nặng hiện tại không hợp lệ. Vui lòng nhập trong khoảng 20 - 300 kg.'
+            ];
+        }
+
+        if ($targetWeight <= 0) {
+            return [
+                'valid' => false,
+                'message' => 'Vui lòng nhập cân nặng mục tiêu.'
+            ];
+        }
+
+        if ($targetWeight < 20 || $targetWeight > 300) {
+            return [
+                'valid' => false,
+                'message' => 'Cân nặng mục tiêu không hợp lệ. Vui lòng nhập trong khoảng 20 - 300 kg.'
+            ];
+        }
+
+        if ($goalType === 'other') {
+            return [
+                'valid' => false,
+                'message' => 'Vui lòng chọn mục tiêu cân nặng phù hợp.'
+            ];
+        }
+
+        if ($goalType === 'loss' && $targetWeight >= $currentWeight) {
+            return [
+                'valid' => false,
+                'message' => 'Mục tiêu giảm cân cần có cân nặng mục tiêu thấp hơn cân nặng hiện tại.'
+            ];
+        }
+
+        if ($goalType === 'gain' && $targetWeight <= $currentWeight) {
+            return [
+                'valid' => false,
+                'message' => 'Mục tiêu tăng cân cần có cân nặng mục tiêu cao hơn cân nặng hiện tại.'
+            ];
+        }
+
+        if ($goalType === 'maintain' && abs($targetWeight - $currentWeight) > 2) {
+            return [
+                'valid' => false,
+                'message' => 'Mục tiêu duy trì sức khỏe chỉ nên đặt cân nặng mục tiêu lệch tối đa 2 kg so với hiện tại.'
+            ];
+        }
+
+        return ['valid' => true, 'message' => ''];
+    }
+
+    private function normalizeGoalType(string $goal): string
+    {
+        $goal = mb_strtolower(trim($goal), 'UTF-8');
+
+        if (mb_strpos($goal, 'giảm') !== false || mb_strpos($goal, 'giáº£m') !== false || mb_strpos($goal, 'loss') !== false) {
+            return 'loss';
+        }
+
+        if (mb_strpos($goal, 'tăng') !== false || mb_strpos($goal, 'tÄƒng') !== false || mb_strpos($goal, 'gain') !== false) {
+            return 'gain';
+        }
+
+        if (mb_strpos($goal, 'duy') !== false || mb_strpos($goal, 'maintain') !== false) {
+            return 'maintain';
+        }
+
+        return 'other';
+    }
+
+    public function getLatestWeightLog($user_id)
+    {
+        $sql = "SELECT * FROM weight_logs WHERE user_id = ? ORDER BY ngay DESC LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+
+        return $stmt->get_result()->fetch_assoc();
     }
 
     public function updateCurrentWeight($user_id, $weight)

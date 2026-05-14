@@ -1,77 +1,38 @@
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Người dùng</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Thêm người dùng</h1>
+            <p class="mt-2 text-sm text-slate-500">Tài khoản mới sẽ dùng mật khẩu mặc định 123456.</p>
+        </div>
+        <a href="?controller=admin&action=user" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
 
-<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 p-6">
-
-    <!-- BACK -->
-    <a href="?controller=admin&action=user"
-        class="inline-flex items-center gap-2 text-green-700 font-medium hover:text-green-900 transition mb-6">
-        <i class="fa fa-arrow-left"></i> Quay lại danh sách
-    </a>
-
-    <!-- TITLE -->
-    <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center gap-2">
-        <i class="fa fa-user-plus"></i> Thêm người dùng
-    </h2>
-
-    <div class="max-w-3xl bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-
-        <form method="POST" action="index.php?controller=admin&action=storeUser">
-
-            <!-- NAME -->
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-green-700 mb-2">
-                    Tên
-                </label>
-                <input type="text" name="ten"
-                    class="w-full px-4 py-3 rounded-xl border border-green-200
-                              focus:ring-2 focus:ring-green-300 outline-none"
-                    required>
+    <form method="POST" action="index.php?controller=admin&action=storeUser" class="max-w-3xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="space-y-4">
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Tên</label>
+                <input type="text" name="name" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
             </div>
-
-            <!-- EMAIL -->
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-green-700 mb-2">
-                    Email
-                </label>
-                <input type="email" name="email"
-                    class="w-full px-4 py-3 rounded-xl border border-green-200
-                              focus:ring-2 focus:ring-green-300 outline-none"
-                    required>
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Email</label>
+                <input type="email" name="email" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
             </div>
-
-            <!-- ROLE -->
-            <div class="mb-6">
-                <label class="block text-sm font-semibold text-green-700 mb-2">
-                    Vai trò
-                </label>
-
-                <select name="vai_tro"
-                    class="w-full px-4 py-3 rounded-xl border border-green-200
-                               focus:ring-2 focus:ring-green-300 outline-none">
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Vai trò</label>
+                <select name="role" class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>
-
-            <!-- BUTTONS -->
-            <div class="flex gap-3">
-
-                <button type="submit"
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3
-                               rounded-xl font-semibold shadow-sm transition flex items-center gap-2">
-                    <i class="fa fa-save"></i> Lưu
-                </button>
-
-                <a href="?controller=admin&action=user"
-                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3
-                          rounded-xl font-semibold shadow-sm transition flex items-center gap-2">
-                    <i class="fa fa-times"></i> Hủy
-                </a>
-
-            </div>
-
-        </form>
-
-    </div>
+        </div>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button type="submit" class="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 text-sm font-bold text-white transition hover:bg-emerald-700">
+                <i class="fa fa-save"></i> Lưu người dùng
+            </button>
+            <a href="?controller=admin&action=user" class="inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Hủy</a>
+        </div>
+    </form>
 </div>

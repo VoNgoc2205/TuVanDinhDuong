@@ -160,8 +160,12 @@ $activeConversationId = $activeConversationId ?? null;
                                     <img src="<?= htmlspecialchars($m['image']) ?>" class="max-h-72 w-full rounded-3xl object-cover shadow-sm border border-slate-200" alt="Ảnh đã gửi">
                                 <?php endif; ?>
                                 <?php if (!empty($m['message']) && !str_starts_with($m['message'], '[')): ?>
+                                    <?php
+                                        $displayMessage = preg_replace('/\*\*(.*?)\*\*/u', '$1', $m['message']);
+                                        $displayMessage = preg_replace('/__(.*?)__/u', '$1', $displayMessage);
+                                    ?>
                                     <div class="<?= $isUser ? 'rounded-tr-lg bg-emerald-600 text-white' : 'rounded-tl-lg border border-slate-200 bg-white text-slate-700' ?> rounded-3xl px-5 py-4 shadow-sm">
-                                        <div class="whitespace-pre-line text-sm leading-relaxed"><?= htmlspecialchars($m['message']) ?></div>
+                                        <div class="whitespace-pre-line text-sm leading-relaxed"><?= htmlspecialchars($displayMessage) ?></div>
                                     </div>
                                 <?php elseif (!empty($m['image']) && $isUser): ?>
                                     <div class="rounded-3xl rounded-tr-lg bg-emerald-600 px-5 py-4 text-sm font-semibold text-white shadow-sm">Đã gửi ảnh để AI phân tích</div>
@@ -208,6 +212,14 @@ function escapeHTML(value) {
     }[char]));
 }
 
+function cleanChatText(value) {
+    return String(value ?? '')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/^\s{0,3}#{1,6}\s*/gm, '')
+        .replace(/\n{3,}/g, '\n\n');
+}
+
 function scrollChat() {
     chat.scrollTop = chat.scrollHeight;
 }
@@ -215,9 +227,10 @@ function scrollChat() {
 function addMessage(role, message, image = '') {
     const isUser = role === 'user';
     const imageHtml = image ? `<img src="${escapeHTML(image)}" class="max-h-72 w-full rounded-3xl object-cover shadow-sm border border-slate-200" alt="Ảnh đã gửi">` : '';
+    const displayMessage = cleanChatText(message);
     const textHtml = message ? `
         <div class="${isUser ? 'rounded-tr-lg bg-emerald-600 text-white' : 'rounded-tl-lg border border-slate-200 bg-white text-slate-700'} rounded-3xl px-5 py-4 shadow-sm">
-            <div class="whitespace-pre-line text-sm leading-relaxed">${escapeHTML(message)}</div>
+            <div class="whitespace-pre-line text-sm leading-relaxed">${escapeHTML(displayMessage)}</div>
         </div>` : '';
     chat.insertAdjacentHTML('beforeend', `
         <div class="message-appear flex ${isUser ? 'justify-end' : 'justify-start'}">
@@ -446,10 +459,10 @@ function togglePinConversation(conversationId, pinned) {
         if (data.success) {
             window.location.reload();
         } else {
-            alert(data.error || 'Không thể cập nhật ghim hội thoại');
+            notify(data.error || 'Không thể cập nhật ghim hội thoại', 'error');
         }
     })
-    .catch(() => alert('Lỗi kết nối khi cập nhật ghim hội thoại'));
+    .catch(() => notify('Lỗi kết nối khi cập nhật ghim hội thoại', 'error'));
 }
 
 function deleteConversation(conversationId) {
@@ -466,7 +479,7 @@ function deleteConversation(conversationId) {
     .then(res => res.json())
     .then(data => {
         if (!data.success) {
-            alert(data.error || 'Không thể xóa lịch sử chat');
+            notify(data.error || 'Không thể xóa lịch sử chat', 'error');
             return;
         }
         const activeConversationId = <?= (int)($activeConversationId ?? 0) ?>;
@@ -474,7 +487,7 @@ function deleteConversation(conversationId) {
             ? 'index.php?controller=chatbox&action=index'
             : window.location.href;
     })
-    .catch(() => alert('Lỗi kết nối khi xóa lịch sử chat'));
+    .catch(() => notify('Lỗi kết nối khi xóa lịch sử chat', 'error'));
 }
 
 document.addEventListener('click', event => {
@@ -497,3 +510,4 @@ input.addEventListener('input', () => {
 
 scrollChat();
 </script>
+

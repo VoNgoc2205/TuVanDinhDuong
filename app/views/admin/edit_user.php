@@ -1,103 +1,60 @@
-<script src="https://cdn.tailwindcss.com"></script>
+<?php
+$user = $user ?? [];
+$name = $user['name'] ?? '';
+$role = $user['role'] ?? 'user';
+$status = $user['status'] ?? 'active';
+$isSelf = (int)($user['id'] ?? 0) === (int)($_SESSION['user']['id'] ?? 0);
+?>
 
-<div class="min-h-screen bg-gradient-to-br from-green-50 to-lime-50 py-10 px-4">
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Người dùng</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Chỉnh sửa người dùng</h1>
+            <p class="mt-2 text-sm text-slate-500">Cập nhật thông tin, vai trò và trạng thái tài khoản.</p>
+        </div>
+        <a href="index.php?controller=admin&action=user" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+            <i class="fa fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
 
-    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+    <form action="index.php?controller=admin&action=updateUser" method="POST" class="max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <input type="hidden" name="id" value="<?= (int)($user['id'] ?? 0) ?>">
 
-        <!-- TITLE -->
-        <div class="flex items-center gap-3 mb-8">
-            <i class="fa fa-user-edit text-2xl text-green-700"></i>
-            <h1 class="text-2xl font-bold text-green-700">
-                Chỉnh sửa người dùng
-            </h1>
+        <div class="grid gap-4 md:grid-cols-2">
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Họ và tên</label>
+                <input type="text" name="name" value="<?= htmlspecialchars($name) ?>" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Email</label>
+                <input type="email" name="email" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Vai trò</label>
+                <select name="role" class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                    <option value="user" <?= $role === 'user' ? 'selected' : '' ?>>User</option>
+                    <option value="admin" <?= $role === 'admin' ? 'selected' : '' ?>>Admin</option>
+                </select>
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-bold text-slate-600">Trạng thái</label>
+                <select name="status" class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100" <?= $isSelf ? 'disabled' : '' ?>>
+                    <option value="active" <?= $status === 'active' ? 'selected' : '' ?>>Đang hoạt động</option>
+                    <option value="locked" <?= $status === 'locked' ? 'selected' : '' ?>>Đã khóa</option>
+                </select>
+                <?php if ($isSelf): ?>
+                    <input type="hidden" name="status" value="active">
+                    <p class="mt-2 text-xs font-semibold text-slate-400">Không thể khóa chính tài khoản đang đăng nhập.</p>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <form action="index.php?controller=admin&action=updateUser" method="POST" class="space-y-6">
-
-            <input type="hidden" name="id" value="<?= $user['id'] ?>">
-
-            <!-- ROW 1 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                    <label class="block text-sm font-semibold text-green-700 mb-2">
-                        Họ và tên
-                    </label>
-                    <input type="text" name="ten"
-                        value="<?= htmlspecialchars($user['ten']) ?>"
-                        class="w-full h-12 px-4 rounded-xl border border-green-200 focus:border-green-600 focus:ring-2 focus:ring-green-200 outline-none transition"
-                        required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-green-700 mb-2">
-                        Email
-                    </label>
-                    <input type="email" name="email"
-                        value="<?= htmlspecialchars($user['email']) ?>"
-                        class="w-full h-12 px-4 rounded-xl border border-green-200 focus:border-green-600 focus:ring-2 focus:ring-green-200 outline-none transition"
-                        required>
-                </div>
-
-            </div>
-
-            <!-- ROW 2 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                    <label class="block text-sm font-semibold text-green-700 mb-2">
-                        Vai trò
-                    </label>
-                    <select name="vai_tro"
-                        class="w-full h-12 px-4 rounded-xl border border-green-200 focus:border-green-600 focus:ring-2 focus:ring-green-200 outline-none transition">
-
-                        <option value="user" <?= $user['vai_tro'] == 'user' ? 'selected' : '' ?>>
-                            User
-                        </option>
-
-                        <option value="admin" <?= $user['vai_tro'] == 'admin' ? 'selected' : '' ?>>
-                            Admin
-                        </option>
-
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-green-700 mb-2">
-                        Trạng thái
-                    </label>
-                    <select name="status"
-                        class="w-full h-12 px-4 rounded-xl border border-green-200 focus:border-green-600 focus:ring-2 focus:ring-green-200 outline-none transition">
-
-                        <option value="active" <?= ($user['status'] ?? 'active') == 'active' ? 'selected' : '' ?>>
-                            Hoạt động
-                        </option>
-
-                        <option value="inactive" <?= ($user['status'] ?? '') == 'inactive' ? 'selected' : '' ?>>
-                            Bị khóa
-                        </option>
-
-                    </select>
-                </div>
-
-            </div>
-
-            <!-- BUTTONS -->
-            <div class="flex flex-col sm:flex-row gap-4 pt-4">
-
-                <button type="submit"
-                    class="flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-800 text-white font-semibold px-6 h-12 rounded-xl hover:opacity-90 transition">
-                    <i class="fa fa-save"></i>
-                    Lưu thay đổi
-                </button>
-
-                <a href="index.php?controller=admin&action=user"
-                    class="flex items-center justify-center h-12 px-6 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition">
-                    Hủy bỏ
-                </a>
-
-            </div>
-
-        </form>
-    </div>
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button type="submit" class="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-6 text-sm font-bold text-white transition hover:bg-emerald-700">
+                <i class="fa fa-save"></i> Lưu thay đổi
+            </button>
+            <a href="index.php?controller=admin&action=user" class="inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Hủy</a>
+        </div>
+    </form>
 </div>

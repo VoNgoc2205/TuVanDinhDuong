@@ -56,7 +56,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
             <div class="relative">
                 <?php if (!empty($_SESSION['error'])): ?>
-                    <div class="mb-6 rounded-3xl p-4 bg-red-50 border border-red-200 text-red-700 font-semibold">
+                    <div class="mb-6 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 font-extrabold text-red-700">
+                        <span class="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-red-600 text-[10px] text-white"><i class="fa fa-xmark"></i></span>
                         <?= htmlspecialchars($_SESSION['error']) ?>
                     </div>
                     <?php unset($_SESSION['error']); ?>
@@ -197,7 +198,7 @@ if (session_status() === PHP_SESSION_NONE) {
             if (fileInput.files.length > 0) {
                 formData.append("image", fileInput.files[0]);
             } else {
-                alert("Vui lòng chọn ảnh món ăn trước khi nhận diện.");
+                notify("Vui lòng chọn ảnh món ăn trước khi nhận diện.", "warning");
                 return;
             }
         } else {
@@ -230,12 +231,12 @@ if (session_status() === PHP_SESSION_NONE) {
                     window.currentFood = data.data;
                     window.location.href = "?controller=food&action=result";
                 } else {
-                    alert("❌ " + (data.message || data.msg || 'Lỗi phân tích'));
+                    notify(data.message || data.msg || 'Lỗi phân tích', "error");
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert("❌ Lỗi server");
+                notify("Lỗi server", "error");
             });
     }
     async function analyzeFoodFixed() {
@@ -250,7 +251,7 @@ if (session_status() === PHP_SESSION_NONE) {
         if (mode === 'ai') {
             const fileInput = aiForm ? aiForm.querySelector('#imageInput') : null;
             if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                alert('Vui lòng chọn ảnh món ăn trước khi nhận diện.');
+                notify('Vui lòng chọn ảnh món ăn trước khi nhận diện.', "warning");
                 return;
             }
 
@@ -308,10 +309,10 @@ if (session_status() === PHP_SESSION_NONE) {
                 return;
             }
 
-            alert(data.message || data.msg || 'Không thể phân tích món ăn. Vui lòng thử lại.');
+            notify(data.message || data.msg || 'Không thể phân tích món ăn. Vui lòng thử lại.', "error");
         } catch (error) {
             console.error(error);
-            alert(error.message || 'Lỗi server, vui lòng thử lại.');
+            notify(error.message || 'Lỗi server, vui lòng thử lại.', "error");
         } finally {
             if (activeButton) {
                 activeButton.disabled = false;
@@ -320,3 +321,4 @@ if (session_status() === PHP_SESSION_NONE) {
         }
     }
 </script>
+

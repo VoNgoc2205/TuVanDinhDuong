@@ -31,6 +31,11 @@ class UserController
             $user = $this->model->getUserByEmailOrPhone($account);
 
             if ($user && password_verify($password, $user["password"])) {
+                if (($user["status"] ?? "active") === "locked") {
+                    $error = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.";
+                    require "app/views/auth/login.php";
+                    return;
+                }
 
                 $_SESSION["user"] = [
                     "id" => $user["id"],
@@ -153,7 +158,7 @@ class UserController
         session_destroy();
         setcookie("user_id", "", time() - 3600, "/");
 
-        header("Location: index.php");
+        header("Location: index.php?controller=user&action=login");
         exit;
     }
 

@@ -1,106 +1,123 @@
-<h3 class="text-2xl font-bold mb-6 text-slate-800">
-    👥 Quản lý người dùng
-</h3>
+<?php
+$users = $users ?? [];
+$totalUsers = $totalUsers ?? count($users);
+$currentAdminId = (int)($_SESSION['user']['id'] ?? 0);
+?>
 
-<!-- TOOLBAR -->
-<form method="GET" action="index.php"
-    class="flex flex-wrap items-center gap-3 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-
-    <input type="hidden" name="controller" value="admin">
-    <input type="hidden" name="action" value="user">
-
-    <!-- TOTAL -->
-    <div class="px-4 py-2 rounded-xl bg-slate-50 border text-slate-700 font-semibold">
-        Tổng: <span class="text-green-600"><?= isset($users) ? count($users) : 0 ?></span>
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Người dùng</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Quản lý người dùng</h1>
+            <p class="mt-2 text-sm text-slate-500">Tìm kiếm, phân quyền và khóa tài khoản người dùng.</p>
+        </div>
+        <a href="index.php?controller=admin&action=addUser" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-600">
+            <i class="fa fa-user-plus"></i> Thêm người dùng
+        </a>
     </div>
 
-    <!-- SEARCH -->
-    <input type="text" name="keyword"
-        value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>"
-        placeholder="🔍 Tìm kiếm tên hoặc email..."
-        class="flex-1 min-w-[200px] px-4 py-2 rounded-xl border border-slate-200
-                  focus:ring-2 focus:ring-green-200 focus:border-green-500 outline-none">
+    <form method="GET" action="index.php" class="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm xl:grid-cols-[auto_1fr_auto_auto_auto]">
+        <input type="hidden" name="controller" value="admin">
+        <input type="hidden" name="action" value="user">
 
-    <!-- ROLE -->
-    <select name="role"
-        class="px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-green-200">
-        <option value="">Tất cả vai trò</option>
-        <option value="admin">Admin</option>
-        <option value="user">User</option>
-    </select>
-
-    <!-- BUTTON -->
-    <button class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl
-                   font-semibold shadow-sm transition">
-        Lọc
-    </button>
-</form>
-
-<!-- LIST -->
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-    <?php if (!empty($users)): ?>
-        <?php foreach ($users as $u): ?>
-
-            <?php
-            $colors = ['bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'];
-            $color = $colors[$u['id'] % count($colors)];
-            ?>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100
-                        p-6 text-center hover:shadow-md transition group">
-
-                <!-- AVATAR -->
-                <div class="w-16 h-16 mx-auto <?= $color ?> text-white flex items-center justify-center
-                            rounded-2xl text-xl font-bold mb-3 shadow-sm group-hover:scale-105 transition">
-                    <?= strtoupper(substr($u['name'], 0, 1)) ?>
-                </div>
-
-                <!-- NAME -->
-                <h4 class="font-bold text-slate-800">
-                    <?= htmlspecialchars($u['name']) ?>
-                </h4>
-
-                <!-- EMAIL -->
-                <p class="text-sm text-slate-500 mt-1 break-words">
-                    <?= htmlspecialchars($u['email']) ?>
-                </p>
-
-                <!-- ROLE -->
-                <div class="mt-3">
-                    <span class="px-3 py-1 text-xs font-semibold rounded-full
-                        <?= $u['role'] == 'admin'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-blue-100 text-blue-700' ?>">
-                        <?= strtoupper($u['role']) ?>
-                    </span>
-                </div>
-
-                <!-- ACTION -->
-                <div class="flex justify-center gap-3 mt-5">
-
-                    <form method="POST"
-                        action="index.php?controller=admin&action=deleteUser"
-                        onsubmit="return confirm('Xóa user này?')">
-
-                        <input type="hidden" name="id" value="<?= $u['id'] ?>">
-
-                        <button class="w-9 h-9 flex items-center justify-center rounded-xl
-                                       bg-red-50 text-red-500 hover:bg-red-100 transition">
-                            <i class="fa fa-trash"></i>
-                        </button>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        <?php endforeach; ?>
-    <?php else: ?>
-        <div class="col-span-full text-center text-slate-500 py-10">
-            Không có dữ liệu người dùng
+        <div class="inline-flex items-center justify-center rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700">
+            Tổng: <?= number_format($totalUsers) ?>
         </div>
-    <?php endif; ?>
 
+        <input type="text" name="keyword" value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>" placeholder="Tìm theo tên hoặc email..." class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+
+        <select name="role" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+            <option value="">Tất cả vai trò</option>
+            <option value="admin" <?= ($_GET['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
+            <option value="user" <?= ($_GET['role'] ?? '') === 'user' ? 'selected' : '' ?>>User</option>
+        </select>
+
+        <select name="status" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+            <option value="">Tất cả trạng thái</option>
+            <option value="active" <?= ($_GET['status'] ?? '') === 'active' ? 'selected' : '' ?>>Đang hoạt động</option>
+            <option value="locked" <?= ($_GET['status'] ?? '') === 'locked' ? 'selected' : '' ?>>Đã khóa</option>
+        </select>
+
+        <button class="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700">
+            <i class="fa fa-filter"></i> Lọc
+        </button>
+    </form>
+
+    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-400">
+                    <tr>
+                        <th class="px-5 py-4">Người dùng</th>
+                        <th class="px-5 py-4">Email</th>
+                        <th class="px-5 py-4">Vai trò</th>
+                        <th class="px-5 py-4">Trạng thái</th>
+                        <th class="px-5 py-4 text-right">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <?php if (!empty($users)): ?>
+                        <?php foreach ($users as $u): ?>
+                            <?php
+                                $id = (int)($u['id'] ?? 0);
+                                $initial = strtoupper(mb_substr($u['name'] ?? 'U', 0, 1));
+                                $role = $u['role'] ?? 'user';
+                                $status = $u['status'] ?? 'active';
+                                $isLocked = $status === 'locked';
+                                $isSelf = $id === $currentAdminId;
+                            ?>
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 font-black text-emerald-700"><?= htmlspecialchars($initial) ?></div>
+                                        <div>
+                                            <p class="font-black text-slate-900"><?= htmlspecialchars($u['name'] ?? 'Không rõ') ?></p>
+                                            <p class="text-xs text-slate-400">ID #<?= $id ?></p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-4 text-slate-600"><?= htmlspecialchars($u['email'] ?? '') ?></td>
+                                <td class="px-5 py-4">
+                                    <form method="POST" action="index.php?controller=admin&action=updateUserRole">
+                                        <input type="hidden" name="id" value="<?= $id ?>">
+                                        <select name="role" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black uppercase text-slate-700 outline-none transition focus:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-50" <?= $isSelf ? 'disabled' : '' ?>>
+                                            <option value="user" <?= $role === 'user' ? 'selected' : '' ?>>User</option>
+                                            <option value="admin" <?= $role === 'admin' ? 'selected' : '' ?>>Admin</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="rounded-full px-3 py-1 text-xs font-black <?= $isLocked ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700' ?>">
+                                        <?= $isLocked ? 'ĐÃ KHÓA' : 'HOẠT ĐỘNG' ?>
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="index.php?controller=admin&action=editUser&id=<?= $id ?>" class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition hover:bg-amber-100" title="Sửa">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="index.php?controller=admin&action=toggleUserStatus" onsubmit="return confirm('<?= $isLocked ? 'Mở khóa tài khoản này?' : 'Khóa tài khoản này?' ?>')">
+                                            <input type="hidden" name="id" value="<?= $id ?>">
+                                            <input type="hidden" name="status" value="<?= $isLocked ? 'active' : 'locked' ?>">
+                                            <button class="flex h-10 w-10 items-center justify-center rounded-xl <?= $isLocked ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' ?> transition disabled:cursor-not-allowed disabled:opacity-40" title="<?= $isLocked ? 'Mở khóa' : 'Khóa' ?>" <?= $isSelf ? 'disabled' : '' ?>>
+                                                <i class="fa <?= $isLocked ? 'fa-lock-open' : 'fa-lock' ?>"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="index.php?controller=admin&action=deleteUser" onsubmit="return confirm('Xóa người dùng này?')">
+                                            <input type="hidden" name="id" value="<?= $id ?>">
+                                            <button class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40" title="Xóa" <?= $isSelf ? 'disabled' : '' ?>>
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" class="px-5 py-12 text-center text-slate-400">Không có dữ liệu người dùng</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>

@@ -1,189 +1,113 @@
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-    body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background: #F1F5F9;
-    }
-</style>
-
-<div class="max-w-7xl mx-auto">
-
-    <!-- TITLE -->
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            🤖 Quản lý AI hệ thống
-        </h2>
-        <p class="text-sm text-gray-500 mt-1">Theo dõi hoạt động AI trong hệ thống</p>
+<div class="space-y-6">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">AI</p>
+            <h1 class="mt-2 text-3xl font-black text-slate-900">Quản lý AI hệ thống</h1>
+            <p class="mt-2 text-sm text-slate-500">Theo dõi request, người dùng, lỗi và trạng thái dịch vụ AI.</p>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Monitoring
+        </span>
     </div>
 
-    <!-- ================= STATS ================= -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-
-        <!-- CARD -->
-        <div class="bg-gradient-to-r from-green-600 to-green-500 text-white p-5 rounded-2xl shadow relative overflow-hidden">
-            <i class="fa fa-chart-line text-4xl opacity-20 absolute right-4 top-4"></i>
-            <p class="text-sm">Tổng request</p>
-            <h3 class="text-3xl font-bold"><?= number_format($stats['total'] ?? 0) ?></h3>
-        </div>
-
-        <div class="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-5 rounded-2xl shadow relative overflow-hidden">
-            <i class="fa fa-users text-4xl opacity-20 absolute right-4 top-4"></i>
-            <p class="text-sm">User sử dụng</p>
-            <h3 class="text-3xl font-bold"><?= number_format($stats['users'] ?? 0) ?></h3>
-        </div>
-
-        <div class="bg-gradient-to-r from-red-500 to-red-400 text-white p-5 rounded-2xl shadow relative overflow-hidden">
-            <i class="fa fa-exclamation-triangle text-4xl opacity-20 absolute right-4 top-4"></i>
-            <p class="text-sm">Lỗi AI</p>
-            <h3 class="text-3xl font-bold"><?= number_format($stats['errors'] ?? 0) ?></h3>
-        </div>
-
-        <div class="bg-gradient-to-r from-orange-500 to-orange-400 text-white p-5 rounded-2xl shadow relative overflow-hidden">
-            <i class="fa fa-robot text-4xl opacity-20 absolute right-4 top-4"></i>
-            <p class="text-sm">AI hoạt động</p>
-            <h3 class="text-3xl font-bold">
-                <?= !empty($ai_services)
-                    ? count(array_filter($ai_services, fn($a) => $a['trang_thai'] === 'Hoạt động'))
-                    : 0 ?>
-            </h3>
-        </div>
-
+    <?php
+    $activeCount = !empty($ai_services) ? count(array_filter($ai_services, fn($a) => ($a['trang_thai'] ?? '') === 'Hoạt động')) : 0;
+    $cards = [
+        ['label' => 'Tổng request', 'value' => $stats['total'] ?? 0, 'icon' => 'fa-chart-line', 'bg' => 'bg-emerald-50', 'color' => 'text-emerald-600'],
+        ['label' => 'User sử dụng', 'value' => $stats['users'] ?? 0, 'icon' => 'fa-users', 'bg' => 'bg-blue-50', 'color' => 'text-blue-600'],
+        ['label' => 'Lỗi AI', 'value' => $stats['errors'] ?? 0, 'icon' => 'fa-triangle-exclamation', 'bg' => 'bg-red-50', 'color' => 'text-red-600'],
+        ['label' => 'AI hoạt động', 'value' => $activeCount, 'icon' => 'fa-robot', 'bg' => 'bg-violet-50', 'color' => 'text-violet-600'],
+    ];
+    ?>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <?php foreach ($cards as $card): ?>
+            <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-slate-400"><?= $card['label'] ?></p>
+                        <p class="mt-2 text-3xl font-black text-slate-900"><?= number_format((float)$card['value']) ?></p>
+                    </div>
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl <?= $card['bg'] ?> <?= $card['color'] ?>">
+                        <i class="fa <?= $card['icon'] ?>"></i>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
 
-    <!-- ================= CHART ================= -->
-    <div class="bg-white p-6 rounded-2xl shadow mb-6 max-w-3xl mx-auto">
-        <h3 class="font-semibold text-slate-700 mb-3">📊 AI Usage (7 ngày)</h3>
-        <canvas id="aiChart" style="height:220px;"></canvas>
-    </div>
-
-    <!-- ================= TABLE ================= -->
-    <div class="bg-white rounded-2xl shadow overflow-hidden">
-
-        <div class="p-5 border-b">
-            <h3 class="font-semibold text-slate-700">Danh sách dịch vụ AI</h3>
+    <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-black text-slate-900">AI Usage</h2>
+                <p class="text-sm text-slate-500">Lượt phản hồi AI trong 7 ngày gần nhất</p>
+            </div>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-500">7 ngày</span>
         </div>
+        <div class="h-[260px]"><canvas id="aiChart"></canvas></div>
+    </section>
 
+    <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 p-5">
+            <h2 class="font-black text-slate-900">Danh sách dịch vụ AI</h2>
+            <p class="mt-1 text-sm text-slate-500">Bật/tắt dịch vụ và theo dõi mức sử dụng.</p>
+        </div>
         <div class="overflow-x-auto">
-
-            <table class="w-full text-sm">
-
-                <thead class="bg-slate-100 text-slate-600 text-xs uppercase">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-400">
                     <tr>
-                        <th class="text-left p-4">Tên AI</th>
-                        <th>Chức năng</th>
-                        <th>Trạng thái</th>
-                        <th>Số lần dùng</th>
-                        <th>Hành động</th>
+                        <th class="px-5 py-4">Tên AI</th>
+                        <th class="px-5 py-4">Chức năng</th>
+                        <th class="px-5 py-4">Trạng thái</th>
+                        <th class="px-5 py-4 text-right">Lượt dùng</th>
+                        <th class="px-5 py-4 text-right">Hành động</th>
                     </tr>
                 </thead>
-
-                <tbody>
-
+                <tbody class="divide-y divide-slate-100">
                     <?php if (!empty($ai_services)): ?>
                         <?php foreach ($ai_services as $service): ?>
-
-                            <?php $isActive = $service['trang_thai'] === 'Hoạt động'; ?>
-
-                            <tr class="border-b hover:bg-slate-50 transition">
-
-                                <!-- NAME -->
-                                <td class="p-4 flex items-center gap-2 font-medium text-slate-700">
-                                    <i class="<?= htmlspecialchars($service['icon']) ?> text-green-600"></i>
-                                    <?= htmlspecialchars($service['ten_ai']) ?>
+                            <?php $isActive = ($service['trang_thai'] ?? '') === 'Hoạt động'; ?>
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-5 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                            <i class="<?= htmlspecialchars($service['icon'] ?? 'fa fa-robot') ?>"></i>
+                                        </div>
+                                        <span class="font-black text-slate-900"><?= htmlspecialchars($service['ten_ai'] ?? '') ?></span>
+                                    </div>
                                 </td>
-
-                                <!-- FUNCTION -->
-                                <td class="text-center text-slate-600">
-                                    <?= htmlspecialchars($service['chuc_nang']) ?>
-                                </td>
-
-                                <!-- STATUS -->
-                                <td class="text-center">
-                                    <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                        <?= $isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' ?>">
-                                        <?= htmlspecialchars($service['trang_thai']) ?>
+                                <td class="px-5 py-4 text-slate-600"><?= htmlspecialchars($service['chuc_nang'] ?? '') ?></td>
+                                <td class="px-5 py-4">
+                                    <span class="rounded-full px-3 py-1 text-xs font-black <?= $isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' ?>">
+                                        <?= htmlspecialchars($service['trang_thai'] ?? '') ?>
                                     </span>
                                 </td>
-
-                                <!-- COUNT -->
-                                <td class="text-center font-semibold text-slate-700">
-                                    <?= number_format($service['real_usage'] ?? 0) ?>
-                                </td>
-
-                                <!-- ACTION -->
-                                <td class="text-center">
-
-                                    <button
-                                        onclick="toggleAI(<?= $service['id'] ?>, '<?= $isActive ? 'Tạm dừng' : 'Hoạt động' ?>')"
-                                        class="px-3 py-1 rounded-lg text-xs font-semibold transition
-                                        <?= $isActive
-                                            ? 'bg-red-500 hover:bg-red-600 text-white'
-                                            : 'bg-green-600 hover:bg-green-700 text-white' ?>">
-
-                                        <i class="fa fa-power-off mr-1"></i>
-                                        <?= $isActive ? 'Tắt' : 'Bật' ?>
-
+                                <td class="px-5 py-4 text-right font-black text-slate-700"><?= number_format($service['real_usage'] ?? 0) ?></td>
+                                <td class="px-5 py-4 text-right">
+                                    <button onclick="toggleAI(<?= (int)$service['id'] ?>, '<?= $isActive ? 'Tạm dừng' : 'Hoạt động' ?>')" class="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-xs font-black text-white transition <?= $isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700' ?>">
+                                        <i class="fa fa-power-off"></i> <?= $isActive ? 'Tắt' : 'Bật' ?>
                                     </button>
-
                                 </td>
-
                             </tr>
-
                         <?php endforeach; ?>
                     <?php else: ?>
-
-                        <tr>
-                            <td colspan="5" class="text-center p-6 text-gray-400">
-                                Chưa có dữ liệu AI
-                            </td>
-                        </tr>
-
+                        <tr><td colspan="5" class="px-5 py-12 text-center text-slate-400">Chưa có dữ liệu AI</td></tr>
                     <?php endif; ?>
-
                 </tbody>
-
             </table>
-
         </div>
-
-    </div>
-
+    </section>
 </div>
 
-<!-- ================= CHART JS ================= -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    new Chart(document.getElementById('aiChart'), {
-        type: 'line',
-        data: {
-            labels: <?= json_encode($chartLabels ?? []) ?>,
-            datasets: [{
-                label: 'Requests',
-                data: <?= json_encode($chartData ?? []) ?>,
-                borderColor: '#16a34a',
-                backgroundColor: 'rgba(22,163,74,0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
-
-    function toggleAI(id, status) {
-        if (confirm('Bạn có chắc muốn đổi trạng thái AI?')) {
-            window.location.href =
-                `index.php?controller=admin&action=updateAIStatus&id=${id}&status=${status}`;
-        }
+new Chart(document.getElementById('aiChart'), {
+    type: 'line',
+    data: { labels: <?= json_encode($chartLabels ?? []) ?>, datasets: [{ data: <?= json_encode($chartData ?? []) ?>, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.12)', fill: true, tension: 0.35 }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+});
+function toggleAI(id, status) {
+    if (confirm('Bạn có chắc muốn đổi trạng thái AI?')) {
+        window.location.href = `index.php?controller=admin&action=updateAIStatus&id=${id}&status=${encodeURIComponent(status)}`;
     }
+}
 </script>

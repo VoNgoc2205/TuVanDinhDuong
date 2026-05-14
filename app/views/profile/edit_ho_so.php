@@ -444,7 +444,7 @@ if (!empty($profile['medical_analysis'])) {
                 const value = input ? input.value.trim() : "";
 
                 if (!value || value <= 0) {
-                    alert("Nhập cân nặng hợp lệ!");
+                    notify("Nhập cân nặng hợp lệ!", "error");
                     return;
                 }
 
@@ -455,10 +455,10 @@ if (!empty($profile['medical_analysis'])) {
                         },
                         body: "cannang=" + encodeURIComponent(value)
                     })
-                    .then(res => res.text())
+                    .then(res => res.json())
                     .then(res => {
 
-                        if (res.trim() === "success") {
+                        if (res.success) {
 
                             // UPDATE UI NGAY
                             if (weightEl) {
@@ -474,13 +474,17 @@ if (!empty($profile['medical_analysis'])) {
                             form.reset();
 
                         } else {
-                            alert("Lưu thất bại!");
+                            if (res.message) {
+                                notify(res.message, "error");
+                                return;
+                            }
+                            notify("Lưu thất bại!", "error");
                             console.log(res);
                         }
                     })
                     .catch(err => {
                         console.error(err);
-                        alert("Lỗi kết nối server!");
+                        notify("Lỗi kết nối server!", "error");
                     });
             });
         }
@@ -546,7 +550,7 @@ if (!empty($profile['medical_analysis'])) {
         }
 
         if (file.size > 10 * 1024 * 1024) {
-            alert('Kích thước file không được vượt quá 10MB');
+            notify('Kích thước file không được vượt quá 10MB', 'error');
             return;
         }
 
@@ -591,7 +595,7 @@ if (!empty($profile['medical_analysis'])) {
         const watchdogId = setTimeout(() => {
             restoreDropZone();
             setMedicalAnalysisStatus('Quá trình xử lý mất quá lâu. Vui lòng thử lại.');
-            alert('Qu? tr?nh x? l? m?t qu? l?u. Vui l?ng th? l?i.');
+            notify('Quá trình xử lý mất quá lâu. Vui lòng thử lại.', 'warning');
         }, 95000);
         setMedicalAnalysisStatus('Đang phân tích...');
 
@@ -648,17 +652,17 @@ if (!empty($profile['medical_analysis'])) {
                     }, 300);
                 } else {
                     setMedicalAnalysisStatus('Phân tích thất bại');
-                    alert('Ph?n t?ch th?t b?i: ' + (data.message || 'Kh?ng x?c ??nh'));
+                    notify('Phân tích thất bại: ' + (data.message || 'Không xác định'), 'error');
                 }
             })
             .catch(err => {
                 console.error('Error:', err);
                 if (err.name === 'AbortError') {
                     setMedicalAnalysisStatus('Phân tích quá lâu, vui lòng thử lại.');
-                    alert('Qu? tr?nh ph?n t?ch qu? l?u. Vui l?ng th? l?i ?nh r? h?n.');
+                    notify('Quá trình phân tích quá lâu. Vui lòng thử lại ảnh rõ hơn.', 'warning');
                 } else {
                     setMedicalAnalysisStatus('Lỗi kết nối khi phân tích.');
-                    alert('L?i k?t n?i server!');
+                    notify('Lỗi kết nối server!', 'error');
                 }
             })
             .finally(() => {
@@ -809,7 +813,7 @@ if (!empty($profile['medical_analysis'])) {
     function saveMedicalData() {
         const analysisData = document.getElementById('medicalAnalysisData').value;
         if (!analysisData) {
-            alert('Không có dữ liệu để lưu');
+            notify('Không có dữ liệu để lưu', 'warning');
             return;
         }
 
@@ -823,16 +827,16 @@ if (!empty($profile['medical_analysis'])) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert('Đã lưu dữ liệu vào hồ sơ định dưỡng thành công!');
+                notify('Đã lưu dữ liệu vào hồ sơ dinh dưỡng thành công!', 'success');
                 // Có thể redirect hoặc cập nhật UI
                 window.location.href = 'index.php?controller=nutrition&action=list';
             } else {
-                alert('Lỗi lưu dữ liệu: ' + (data.message || 'Không xác định'));
+                notify('Lỗi lưu dữ liệu: ' + (data.message || 'Không xác định'), 'error');
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            alert('Lỗi kết nối server!');
+            notify('Lỗi kết nối server!', 'error');
         });
     }
 
@@ -905,6 +909,59 @@ if (!empty($profile['medical_analysis'])) {
     }
 
     // ===== CALORIE TARGET CALCULATION & VALIDATION =====
+    function getProfileGoalType(goal) {
+        const first = String(goal || '').trim().charAt(0).toLowerCase();
+        if (first === 'g') return 'loss';
+        if (first === 't') return 'gain';
+        if (first === 'd') return 'maintain';
+        return 'other';
+    }
+
+    function showProfileMessage(message, type = "error") {
+        notify(message, type);
+    }
+
+    function validateWeightGoalForm() {
+        const current = parseFloat(document.querySelector('input[name="cannang"]')?.value || 0);
+        const target = parseFloat(document.querySelector('input[name="muctieu_cannang"]')?.value || 0);
+        const goal = document.querySelector('input[name="muctieu"]:checked')?.value || '';
+        const goalType = getProfileGoalType(goal);
+
+        if (!current || current < 20 || current > 300) {
+            return 'Cân nặng hiện tại không hợp lệ. Vui lòng nhập trong khoảng 20 - 300 kg.';
+        }
+
+        if (!target || target < 20 || target > 300) {
+            return 'Cân nặng mục tiêu không hợp lệ. Vui lòng nhập trong khoảng 20 - 300 kg.';
+        }
+
+        if (goalType === 'other') {
+            return 'Vui lòng chọn mục tiêu cân nặng phù hợp.';
+        }
+
+        if (goalType === 'loss' && target >= current) {
+            return 'Mục tiêu giảm cân cần có cân nặng mục tiêu thấp hơn cân nặng hiện tại.';
+        }
+
+        if (goalType === 'gain' && target <= current) {
+            return 'Mục tiêu tăng cân cần có cân nặng mục tiêu cao hơn cân nặng hiện tại.';
+        }
+
+        if (goalType === 'maintain' && Math.abs(target - current) > 2) {
+            return 'Mục tiêu duy trì sức khỏe chỉ nên lệch tối đa 2 kg so với cân nặng hiện tại.';
+        }
+
+        return '';
+    }
+
+    document.getElementById('edit-profile-form')?.addEventListener('submit', function(e) {
+        const message = validateWeightGoalForm();
+        if (message) {
+            e.preventDefault();
+            showProfileMessage(message, "error");
+        }
+    });
+
     function calculateAndRecommendCalories() {
         const age = parseFloat(document.querySelector('input[name="tuoi"]').value) || 0;
         const height = parseFloat(document.querySelector('input[name="chieucao"]').value) || 0;
@@ -1004,3 +1061,4 @@ if (!empty($profile['medical_analysis'])) {
         radio.addEventListener('change', calculateAndRecommendCalories);
     });
 </script>
+
