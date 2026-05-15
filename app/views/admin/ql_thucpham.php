@@ -83,7 +83,7 @@ $pageUrl = function ($targetPage) use ($keyword) {
                                         <a href="?controller=admin&action=editFood&id=<?= (int)$food['id'] ?>" class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition hover:bg-amber-100" title="Sửa">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <a href="?controller=admin&action=deleteFood&id=<?= (int)$food['id'] ?>" onclick="return confirm('Bạn có chắc muốn xóa?')" class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-100" title="Xóa">
+                                        <a href="?controller=admin&action=deleteFood&id=<?= (int)$food['id'] ?>" data-confirm="Bạn có chắc muốn xóa?" data-confirm-title="Xóa thực phẩm" data-confirm-ok="Xóa" class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-100" title="Xóa">
                                             <i class="fa fa-trash"></i>
                                         </a>
                                     </div>

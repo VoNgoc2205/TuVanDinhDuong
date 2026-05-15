@@ -105,8 +105,15 @@ new Chart(document.getElementById('aiChart'), {
     data: { labels: <?= json_encode($chartLabels ?? []) ?>, datasets: [{ data: <?= json_encode($chartData ?? []) ?>, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.12)', fill: true, tension: 0.35 }] },
     options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
 });
-function toggleAI(id, status) {
-    if (confirm('Bạn có chắc muốn đổi trạng thái AI?')) {
+async function toggleAI(id, status) {
+    const ok = typeof appConfirm === 'function'
+        ? await appConfirm('Bạn có chắc muốn đổi trạng thái AI?', {
+            title: 'Đổi trạng thái AI',
+            confirmText: 'Đổi trạng thái',
+            cancelText: 'Hủy'
+        })
+        : false;
+    if (ok) {
         window.location.href = `index.php?controller=admin&action=updateAIStatus&id=${id}&status=${encodeURIComponent(status)}`;
     }
 }

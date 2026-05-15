@@ -168,9 +168,91 @@ $userAvatar = $_SESSION["user"]["avatar"] ?? "default.jpg";
 .app-alert-info .app-alert-icon { background: #2563eb; }
 .app-alert-message { flex: 1; font-size: 15px; }
 
+.app-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(8px);
+}
+
+.app-modal {
+    width: min(100%, 440px);
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.96);
+    padding: 26px;
+    box-shadow: 0 30px 90px rgba(15, 23, 42, 0.24);
+    animation: modalIn 0.18s ease;
+}
+
+.app-modal-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 18px;
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.app-modal-title {
+    margin-top: 18px;
+    font-size: 22px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.app-modal-message {
+    margin-top: 8px;
+    color: #64748b;
+    font-weight: 650;
+    line-height: 1.6;
+}
+
+.app-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.app-modal-button {
+    min-width: 104px;
+    border: 0;
+    border-radius: 16px;
+    padding: 13px 18px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.app-modal-button:active {
+    transform: translateY(1px);
+}
+
+.app-modal-cancel {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.app-modal-confirm {
+    background: #dc2626;
+    color: #fff;
+}
+
 @keyframes alertIn {
     from { transform: translateY(-8px); opacity: 0 }
     to { transform: translateY(0); opacity: 1 }
+}
+
+@keyframes modalIn {
+    from { transform: translateY(10px) scale(0.98); opacity: 0 }
+    to { transform: translateY(0) scale(1); opacity: 1 }
 }
 </style>
 
@@ -218,6 +300,103 @@ function notify(message, type = "info") {
     }
     showToast(text, toastType);
 }
+
+function appConfirm(message, options = {}) {
+    const title = options.title || "Xác nhận thao tác";
+    const confirmText = options.confirmText || "Xác nhận";
+    const cancelText = options.cancelText || "Hủy";
+
+    return new Promise(resolve => {
+        const backdrop = document.createElement("div");
+        backdrop.className = "app-modal-backdrop";
+        backdrop.innerHTML = `
+            <div class="app-modal" role="dialog" aria-modal="true">
+                <div class="app-modal-icon"><i class="fa fa-triangle-exclamation"></i></div>
+                <h2 class="app-modal-title"></h2>
+                <p class="app-modal-message"></p>
+                <div class="app-modal-actions">
+                    <button type="button" class="app-modal-button app-modal-cancel"></button>
+                    <button type="button" class="app-modal-button app-modal-confirm"></button>
+                </div>
+            </div>
+        `;
+
+        backdrop.querySelector(".app-modal-title").innerText = title;
+        backdrop.querySelector(".app-modal-message").innerText = message;
+        backdrop.querySelector(".app-modal-cancel").innerText = cancelText;
+        backdrop.querySelector(".app-modal-confirm").innerText = confirmText;
+
+        function close(result) {
+            backdrop.remove();
+            document.removeEventListener("keydown", onKeydown);
+            resolve(result);
+        }
+
+        function onKeydown(event) {
+            if (event.key === "Escape") close(false);
+        }
+
+        backdrop.addEventListener("click", event => {
+            if (event.target === backdrop) close(false);
+        });
+        backdrop.querySelector(".app-modal-cancel").addEventListener("click", () => close(false));
+        backdrop.querySelector(".app-modal-confirm").addEventListener("click", () => close(true));
+        document.addEventListener("keydown", onKeydown);
+        document.body.appendChild(backdrop);
+        backdrop.querySelector(".app-modal-confirm").focus();
+    });
+}
+
+document.addEventListener("click", function(event) {
+    const target = event.target.closest("[data-confirm]");
+    if (!target || target.dataset.confirmBypass === "1") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    appConfirm(target.dataset.confirm, {
+        title: target.dataset.confirmTitle || "Xác nhận thao tác",
+        confirmText: target.dataset.confirmOk || "Xác nhận",
+        cancelText: target.dataset.confirmCancel || "Hủy"
+    }).then(ok => {
+        if (!ok) return;
+
+        if (target.dataset.confirmAction && typeof window.setAction === "function") {
+            window.setAction(target.dataset.confirmAction);
+        }
+
+        if (target.tagName === "A" && target.href) {
+            window.location.href = target.href;
+            return;
+        }
+
+        const form = target.closest("form");
+        if (form) {
+            target.dataset.confirmBypass = "1";
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit(target);
+            } else {
+                form.submit();
+            }
+        }
+    });
+}, true);
+
+document.addEventListener("submit", function(event) {
+    const form = event.target;
+    if (!form.matches("[data-confirm]") || form.dataset.confirmBypass === "1") return;
+
+    event.preventDefault();
+    appConfirm(form.dataset.confirm, {
+        title: form.dataset.confirmTitle || "Xác nhận thao tác",
+        confirmText: form.dataset.confirmOk || "Xác nhận",
+        cancelText: form.dataset.confirmCancel || "Hủy"
+    }).then(ok => {
+        if (!ok) return;
+        form.dataset.confirmBypass = "1";
+        form.submit();
+    });
+});
 
 <?php if (!empty($_SESSION['flash'])): ?>
 document.addEventListener("DOMContentLoaded", function() {

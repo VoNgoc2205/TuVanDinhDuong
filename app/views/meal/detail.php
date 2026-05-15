@@ -123,7 +123,10 @@ $mealPercent = min(100, ($mealTotal / max(1, $mealTarget)) * 100);
                                         <p class="font-bold text-emerald-600 text-lg"><?= round($f['calo'] ?? 0) ?> kcal</p>
                                         <a href="index.php?controller=meal&action=delete&id=<?= intval($f['id']) ?>"
                                            class="text-red-500 hover:bg-red-50 p-2 rounded-full transition"
-                                           onclick="event.stopPropagation(); return confirm('Xóa món này?')">
+                                           data-confirm="Xóa món này?"
+                                           data-confirm-title="Xóa món ăn"
+                                           data-confirm-ok="Xóa"
+                                           onclick="event.stopPropagation();">
                                             <i class="fa-solid fa-trash"></i>
                                         </a>
                                     </div>
@@ -181,7 +184,7 @@ $mealPercent = min(100, ($mealTotal / max(1, $mealTarget)) * 100);
             <div class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-3xl p-6 text-white shadow-lg">
                 <h4 class="text-sm opacity-90">Calo nạp trong ngày</h4>
 
-                <h1 class="text-5xl font-black mt-2"><?= round($dailyTotal) ?></h1>
+                <h1 class="text-5xl font-black !text-white mt-2"><?= round($dailyTotal) ?></h1>
 
                 <p class="opacity-80 mt-1">
                     / <?= number_format($dailyTarget) ?> kcal mục tiêu ngày

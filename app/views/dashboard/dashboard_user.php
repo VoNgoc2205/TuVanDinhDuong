@@ -21,9 +21,10 @@ $percent_completed = ($target_calo > 0)
     ? (($calo_today / $target_calo) * 100) 
     : 0;
 
-$protein = 100;
-$carbs = 250;
-$fat = 70;
+$protein = $proteinTarget ?? 100;
+$carbs = $carbsTarget ?? 250;
+$fat = $fatTarget ?? 70;
+$macroTargetReason = $macroTargetReason ?? 'Dựa trên hồ sơ dinh dưỡng và mục tiêu calo hiện tại.';
 ?>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -43,7 +44,7 @@ $fat = 70;
         <div class="pl-2">
 
             <h1 class="text-4xl font-black text-slate-800 tracking-tight leading-tight">
-                Chào buổi sáng, <?= explode(' ', $userName)[0] ?>! ☀️
+                Chào buổi sáng, <?= htmlspecialchars($userName) ?>! ☀️
             </h1>
             
         </div>
@@ -267,7 +268,7 @@ $fat = 70;
 
             <a href="index.php?controller=chatbox&action=index"
                class="inline-flex bg-white text-green-600 px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform items-center gap-2">
-                Mở trợ lý AI <i class="fa fa-wand-magic-sparkles"></i>
+                Khám phá trợ lý AI <i class="fa fa-wand-magic-sparkles"></i>
             </a>
         </div>
 

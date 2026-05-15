@@ -96,14 +96,14 @@ $currentAdminId = (int)($_SESSION['user']['id'] ?? 0);
                                         <a href="index.php?controller=admin&action=editUser&id=<?= $id ?>" class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition hover:bg-amber-100" title="Sửa">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <form method="POST" action="index.php?controller=admin&action=toggleUserStatus" onsubmit="return confirm('<?= $isLocked ? 'Mở khóa tài khoản này?' : 'Khóa tài khoản này?' ?>')">
+                                        <form method="POST" action="index.php?controller=admin&action=toggleUserStatus" data-confirm="<?= $isLocked ? 'Mở khóa tài khoản này?' : 'Khóa tài khoản này?' ?>" data-confirm-title="Đổi trạng thái tài khoản" data-confirm-ok="<?= $isLocked ? 'Mở khóa' : 'Khóa' ?>">
                                             <input type="hidden" name="id" value="<?= $id ?>">
                                             <input type="hidden" name="status" value="<?= $isLocked ? 'active' : 'locked' ?>">
                                             <button class="flex h-10 w-10 items-center justify-center rounded-xl <?= $isLocked ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' ?> transition disabled:cursor-not-allowed disabled:opacity-40" title="<?= $isLocked ? 'Mở khóa' : 'Khóa' ?>" <?= $isSelf ? 'disabled' : '' ?>>
                                                 <i class="fa <?= $isLocked ? 'fa-lock-open' : 'fa-lock' ?>"></i>
                                             </button>
                                         </form>
-                                        <form method="POST" action="index.php?controller=admin&action=deleteUser" onsubmit="return confirm('Xóa người dùng này?')">
+                                        <form method="POST" action="index.php?controller=admin&action=deleteUser" data-confirm="Xóa người dùng này?" data-confirm-title="Xóa người dùng" data-confirm-ok="Xóa">
                                             <input type="hidden" name="id" value="<?= $id ?>">
                                             <button class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40" title="Xóa" <?= $isSelf ? 'disabled' : '' ?>>
                                                 <i class="fa fa-trash"></i>

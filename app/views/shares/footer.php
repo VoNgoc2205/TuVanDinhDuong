@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 <span class="font-black text-slate-900">Nutri<span class="text-emerald-500">AI</span></span>
             </a>
             <div class="hidden h-5 w-px bg-slate-200 md:block"></div>
-            <p class="text-sm font-semibold text-slate-400">© 2026 NutriAI. All rights reserved.</p>
+            <p class="text-sm font-semibold text-slate-400">© 2026 NutriAI. Smart Nutrition for Better Health.</p>
         </div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">

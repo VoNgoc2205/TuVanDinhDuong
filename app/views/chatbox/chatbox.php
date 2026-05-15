@@ -465,9 +465,16 @@ function togglePinConversation(conversationId, pinned) {
     .catch(() => notify('Lỗi kết nối khi cập nhật ghim hội thoại', 'error'));
 }
 
-function deleteConversation(conversationId) {
+async function deleteConversation(conversationId) {
     closeConversationMenus();
-    if (!confirm('Xóa lịch sử hội thoại này? Hành động này không thể hoàn tác.')) {
+    const ok = typeof appConfirm === 'function'
+        ? await appConfirm('Xóa lịch sử hội thoại này? Hành động này không thể hoàn tác.', {
+            title: 'Xóa lịch sử chat',
+            confirmText: 'Xóa',
+            cancelText: 'Hủy'
+        })
+        : false;
+    if (!ok) {
         return;
     }
 
