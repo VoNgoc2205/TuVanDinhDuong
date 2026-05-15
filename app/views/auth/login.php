@@ -17,58 +17,130 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+
+        .system-page-bg,
+        .auth-bg {
+            background:
+                radial-gradient(circle at 16% 12%, rgba(16, 185, 129, .12), transparent 28%),
+                radial-gradient(circle at 86% 18%, rgba(59, 130, 246, .08), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #eefdf6 100%);
+        }
+
+        .auth-fall {
+            position: fixed;
+            inset: 68px 0 72px;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .auth-fall span {
+            position: absolute;
+            top: -70px;
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, .78);
+            color: rgba(16, 185, 129, .62);
+            box-shadow: 0 18px 50px rgba(15, 23, 42, .08);
+            animation: authFall linear infinite;
+        }
+
+        .auth-fall span:nth-child(1) { left: 5%; animation-duration: 18s; animation-delay: -8s; }
+        .auth-fall span:nth-child(2) { left: 14%; animation-duration: 23s; animation-delay: -15s; color: rgba(249, 115, 22, .58); }
+        .auth-fall span:nth-child(3) { left: 26%; animation-duration: 20s; animation-delay: -4s; transform: scale(.8); }
+        .auth-fall span:nth-child(4) { left: 39%; animation-duration: 25s; animation-delay: -18s; color: rgba(59, 130, 246, .52); }
+        .auth-fall span:nth-child(5) { left: 51%; animation-duration: 17s; animation-delay: -11s; transform: scale(.72); }
+        .auth-fall span:nth-child(6) { left: 63%; animation-duration: 27s; animation-delay: -6s; color: rgba(245, 158, 11, .56); }
+        .auth-fall span:nth-child(7) { left: 74%; animation-duration: 19s; animation-delay: -13s; }
+        .auth-fall span:nth-child(8) { left: 85%; animation-duration: 24s; animation-delay: -9s; color: rgba(59, 130, 246, .48); }
+        .auth-fall span:nth-child(9) { left: 93%; animation-duration: 21s; animation-delay: -16s; color: rgba(249, 115, 22, .52); }
+
+        @keyframes authFall {
+            0% { transform: translate3d(0, -90px, 0) rotate(0deg); opacity: 0; }
+            12% { opacity: .9; }
+            50% { transform: translate3d(28px, 48vh, 0) rotate(150deg); }
+            100% { transform: translate3d(-22px, calc(100vh + 100px), 0) rotate(360deg); opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .auth-fall span { animation: none; opacity: .18; }
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen flex flex-col">
-
-    <!-- HEADER -->
+<body class="system-page-bg min-h-screen flex flex-col">
     <?php require "app/views/shares/header.php"; ?>
 
-    <main class="flex-grow flex items-center justify-center px-4 py-12">
+    <div class="auth-fall" aria-hidden="true">
+        <span><i class="fa fa-leaf"></i></span>
+        <span><i class="fa fa-carrot"></i></span>
+        <span><i class="fa fa-apple-whole"></i></span>
+        <span><i class="fa fa-droplet"></i></span>
+        <span><i class="fa fa-seedling"></i></span>
+        <span><i class="fa fa-bowl-food"></i></span>
+        <span><i class="fa fa-heart-pulse"></i></span>
+        <span><i class="fa fa-utensils"></i></span>
+        <span><i class="fa fa-lemon"></i></span>
+    </div>
 
-        <div class="max-w-[1000px] w-full grid md:grid-cols-2 bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+    <main class="relative z-10 flex-grow flex items-center justify-center px-4 py-12">
+        <div class="max-w-[1080px] w-full grid overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/85 shadow-2xl shadow-slate-200/80 backdrop-blur md:grid-cols-[48%_52%]">
+            <section class="relative min-h-[520px] overflow-hidden bg-slate-950 p-10 text-white">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,.55),transparent_28%),radial-gradient(circle_at_85%_30%,rgba(59,130,246,.32),transparent_30%)]"></div>
+                <div class="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl"></div>
+                <div class="absolute right-8 top-8 text-7xl text-white/10"><i class="fa fa-leaf"></i></div>
 
-            <!-- LEFT (XANH + HỌA TIẾT CHUẨN) -->
-            <div class="relative p-10 flex flex-col justify-center text-white 
-                        bg-gradient-to-br from-green-500 to-emerald-600 overflow-hidden">
+                <div class="relative z-10 flex h-full flex-col justify-between">
+                    <div>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black uppercase tracking-widest text-emerald-100">
+                            <i class="fa fa-sparkles"></i> NutriAI
+                        </span>
+                        <h2 class="mt-8 text-4xl font-black leading-tight">Chào mừng bạn quay lại.</h2>
+                        <p class="mt-4 max-w-sm text-base font-medium leading-relaxed text-emerald-50/90">
+                            Tiếp tục theo dõi calo, đọc ảnh món ăn và nhận gợi ý thực đơn phù hợp với mục tiêu sức khỏe của bạn.
+                        </p>
+                    </div>
 
-                <!-- 🌿 LÁ LỚN -->
-                <div class="absolute bottom-[-40px] left-[-40px] w-[320px] h-[320px] 
-                            bg-white/10 rounded-[60%] rotate-12 blur-2xl"></div>
-
-                <!-- 🌿 LÁ NHỎ -->
-                <div class="absolute bottom-10 left-10 w-[180px] h-[120px] 
-                            bg-white/10 rounded-[50%] rotate-[-20deg] blur-xl"></div>
-
-                <!-- 🌊 CONG DƯỚI -->
-                <div class="absolute bottom-0 left-0 w-full h-24 
-                            bg-white/5 rounded-t-[100%]"></div>
-
-                <!-- ICON MỜ -->
-                <div class="absolute right-6 bottom-6 text-white/10 text-6xl">
-                    <i class="fas fa-leaf"></i>
+                    <div class="grid gap-3">
+                        <div class="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
+                            <div class="flex items-center gap-4">
+                                <div class="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-400 text-slate-950">
+                                    <i class="fa fa-robot"></i>
+                                </div>
+                                <div>
+                                    <p class="font-black text-emerald-50">Trợ lý dinh dưỡng AI</p>
+                                    <p class="mt-1 text-sm font-semibold leading-relaxed text-white/60">Phân tích món ăn, calo và gợi ý khẩu phần phù hợp sau khi bạn đăng nhập.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            <div class="rounded-2xl border border-emerald-300/10 bg-emerald-400/15 p-4">
+                                <i class="fa fa-camera mb-3 text-emerald-200"></i>
+                                <p class="text-sm font-black text-white">Nhận diện món</p>
+                            </div>
+                            <div class="rounded-2xl border border-blue-300/10 bg-blue-400/15 p-4">
+                                <i class="fa fa-chart-line mb-3 text-blue-200"></i>
+                                <p class="text-sm font-black text-white">Theo dõi tiến độ</p>
+                            </div>
+                            <div class="rounded-2xl border border-amber-300/10 bg-amber-400/15 p-4">
+                                <i class="fa fa-utensils mb-3 text-amber-200"></i>
+                                <p class="text-sm font-black text-white">Gợi ý thực đơn</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </section>
 
-                <!-- CONTENT -->
-                <div class="relative z-10">
-                    <h2 class="text-3xl font-black mb-4 leading-snug">
-                        Bắt đầu hành trình sức khỏe
-                    </h2>
-
-                    <p class="text-green-100 font-medium leading-relaxed">
-                        Tham gia cùng cộng đồng NutriAI để nhận lộ trình dinh dưỡng cá nhân hóa ngay hôm nay.
-                    </p>
+            <section class="p-8 md:p-12">
+                <div class="mb-8">
+                    <p class="text-sm font-black uppercase tracking-widest text-emerald-600">Đăng nhập</p>
+                    <h1 class="mt-2 text-3xl font-black text-slate-900">Chào mừng bạn quay trở lại.</h1>
+                    <p class="mt-2 text-slate-500">Điền thông tin để tiếp tục hành trình dinh dưỡng của bạn.</p>
                 </div>
-
-            </div>
-
-            <!-- RIGHT -->
-            <div class="p-8 md:p-10">
-
-                <h1 class="text-2xl font-black text-slate-800 mb-2">Đăng nhập</h1>
-                <p class="text-slate-400 text-sm mb-6">Vui lòng điền thông tin tài khoản của bạn</p>
 
                 <?php if (isset($error)): ?>
                     <div class="mb-4 flex items-center gap-3 rounded-[14px] border border-red-200 bg-red-50 px-5 py-4 text-sm font-extrabold text-red-700">
@@ -78,60 +150,43 @@ if (session_status() === PHP_SESSION_NONE) {
                 <?php endif; ?>
 
                 <form method="POST" action="index.php?controller=user&action=login" class="space-y-5">
-
-                    <!-- EMAIL -->
                     <div>
-                        <label class="text-xs font-bold text-slate-400">TÀI KHOẢN</label>
-                        <input type="text" name="email" placeholder="Email hoặc số điện thoại" required
-                            class="w-full mt-2 p-4 bg-slate-50 rounded-xl outline-none border focus:border-emerald-500">
+                        <label class="text-xs font-black uppercase tracking-widest text-slate-500">Tài khoản</label>
+                        <div class="mt-2 flex min-h-[56px] items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-emerald-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
+                            <i class="fa fa-envelope text-slate-400"></i>
+                            <input type="text" name="email" placeholder="Email hoặc số điện thoại" required class="ml-3 w-full bg-transparent font-semibold text-slate-800 outline-none">
+                        </div>
                     </div>
 
-                    <!-- PASSWORD -->
                     <div>
                         <div class="flex justify-between items-center">
-                            <label class="text-xs font-bold text-slate-400">MẬT KHẨU</label>
-
-                            <a href="index.php?controller=user&action=forgotPassword"
-                               class="text-xs font-bold text-emerald-600 hover:underline">
-                               Quên mật khẩu?
-                            </a>
+                            <label class="text-xs font-black uppercase tracking-widest text-slate-500">Mật khẩu</label>
+                            <a href="index.php?controller=user&action=forgotPassword" class="text-sm font-bold text-emerald-600 hover:underline">Quên mật khẩu?</a>
                         </div>
-
-                        <input type="password" name="password" placeholder="••••••••" required
-                            class="w-full mt-2 p-4 bg-slate-50 rounded-xl outline-none border focus:border-emerald-500">
+                        <div class="mt-2 flex min-h-[56px] items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-emerald-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
+                            <i class="fa fa-lock text-slate-400"></i>
+                            <input type="password" name="password" placeholder="••••••••" required class="ml-3 w-full bg-transparent font-semibold text-slate-800 outline-none">
+                        </div>
                     </div>
 
-                    <!-- REMEMBER -->
-                    <div class="flex items-center gap-2 text-sm text-slate-500">
-                        <input type="checkbox" name="remember">
-                        <span>Ghi nhớ đăng nhập</span>
-                    </div>
+                    <label class="flex items-center gap-3 text-sm font-semibold text-slate-500">
+                        <input type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 accent-emerald-600">
+                        Ghi nhớ đăng nhập
+                    </label>
 
-                    <!-- BUTTON -->
-                    <button type="submit"
-                        class="w-full py-4 bg-slate-800 text-white rounded-xl font-bold 
-                               hover:bg-black hover:scale-[1.02] active:scale-95 transition">
-                        Đăng nhập →
+                    <button type="submit" class="w-full rounded-2xl bg-slate-900 py-4 font-black text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0">
+                        Đăng nhập <i class="fa fa-arrow-right ml-1 text-xs"></i>
                     </button>
-
                 </form>
 
-                <!-- REGISTER -->
-                <p class="text-center text-sm text-slate-400 mt-6">
+                <p class="mt-7 text-center text-sm font-semibold text-slate-400">
                     Chưa có tài khoản?
-                    <a href="index.php?controller=user&action=register"
-                       class="text-emerald-600 font-bold hover:underline">
-                       Đăng ký ngay
-                    </a>
+                    <a href="index.php?controller=user&action=register" class="font-black text-emerald-600 hover:underline">Đăng ký ngay</a>
                 </p>
-
-            </div>
+            </section>
         </div>
-
     </main>
 
-    <!-- FOOTER -->
     <?php require "app/views/shares/footer.php"; ?>
-
 </body>
 </html>

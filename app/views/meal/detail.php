@@ -65,7 +65,7 @@ $dailyPercent = min(100, ($dailyTotal / max(1, $dailyTarget)) * 100);
 $mealPercent = min(100, ($mealTotal / max(1, $mealTarget)) * 100);
 ?>
 
-<div class="p-6">
+<div>
     <div class="mb-6">
         <a href="index.php?controller=meal&action=history"
            class="inline-flex items-center gap-2 text-emerald-600 font-semibold hover:underline">
@@ -73,6 +73,7 @@ $mealPercent = min(100, ($mealTotal / max(1, $mealTarget)) * 100);
             Quay lại
         </a>
 
+        <p class="mt-4 text-sm font-black uppercase tracking-widest text-emerald-600">Chi tiết bữa ăn</p>
         <h1 class="text-3xl font-black text-slate-800 mt-2">
             <?= htmlspecialchars($bua) ?> ngày <?= date('d/m/Y', strtotime($date)) ?>
         </h1>

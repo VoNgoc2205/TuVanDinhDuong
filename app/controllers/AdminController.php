@@ -276,17 +276,15 @@ class AdminController
     public function updateUser()
     {
         $id = intval($_POST['id'] ?? 0);
-        $name = trim($_POST['name'] ?? '');
-        $email = trim($_POST['email'] ?? '');
         $role = $_POST['role'] ?? 'user';
         $status = $_POST['status'] ?? 'active';
 
-        if ($id > 0 && $name !== '' && $email !== '' && in_array($role, ['admin', 'user'], true) && in_array($status, ['active', 'locked'], true)) {
+        if ($id > 0 && in_array($role, ['admin', 'user'], true) && in_array($status, ['active', 'locked'], true)) {
             if ($id === (int)($_SESSION['user']['id'] ?? 0)) {
                 $status = 'active';
             }
-            $stmt = $this->conn->prepare("UPDATE users SET name = ?, email = ?, role = ?, status = ? WHERE id = ?");
-            $stmt->bind_param("ssssi", $name, $email, $role, $status, $id);
+            $stmt = $this->conn->prepare("UPDATE users SET role = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("ssi", $role, $status, $id);
             $stmt->execute();
         }
 

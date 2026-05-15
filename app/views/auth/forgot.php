@@ -16,10 +16,16 @@ if (session_status() === PHP_SESSION_NONE) {
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .system-page-bg {
+            background:
+                radial-gradient(circle at 16% 12%, rgba(16, 185, 129, .12), transparent 28%),
+                radial-gradient(circle at 86% 18%, rgba(59, 130, 246, .08), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #eefdf6 100%);
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen flex flex-col">
+<body class="system-page-bg min-h-screen flex flex-col">
 
     <?php require "app/views/shares/header.php"; ?>
 
@@ -34,6 +40,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-500 rounded-2xl text-white text-2xl mb-4 shadow-lg shadow-emerald-500/30 relative z-10">
                         <i class="fa fa-key"></i>
                     </div>
+                    <p class="relative z-10 mb-2 text-sm font-black uppercase tracking-widest text-emerald-300">Khôi phục tài khoản</p>
                     <h1 class="text-2xl font-black text-white relative z-10 tracking-tight">Quên mật khẩu?</h1>
                     <p class="text-slate-400 text-sm mt-2 relative z-10">Đừng lo lắng, chúng tôi sẽ giúp bạn lấy lại quyền truy cập.</p>
                 </div>
@@ -69,7 +76,7 @@ if (session_status() === PHP_SESSION_NONE) {
                         </div>
 
                         <button class="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-200 transition-all flex items-center justify-center gap-3">
-                            <i class="fa fa-paper-plane text-xs"></i> Gửi link đặt lại mật khẩu
+                            <i class="fa fa-paper-plane text-xs"></i> Đặt lại mật khẩu
                         </button>
                     </form>
 

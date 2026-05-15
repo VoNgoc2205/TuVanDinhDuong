@@ -92,11 +92,10 @@ if ($chieu_cao > 0 && $can_nang > 0) {
 }
 ?>
 
-<div class="max-w-full mx-auto py-6 px-4 lg:px-8 space-y-10 animate-fade-in">
+<div class="space-y-10 animate-fade-in">
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-8 border-b border-slate-100">
         <div>
             <div class="flex items-center gap-4 mb-2">
-                <div class="w-1.5 h-10 bg-emerald-500 rounded-full"></div>
                 <h1 class="text-4xl font-[1000] text-slate-800 tracking-tight">Hồ sơ dinh dưỡng</h1>
             </div>
             <p class="text-slate-500 text-lg font-medium">Phân tích sinh học và lộ trình sức khỏe cá nhân của bạn.</p>
@@ -121,19 +120,22 @@ if ($chieu_cao > 0 && $can_nang > 0) {
                     $avatar = $user['avatar'] ?? '';
                     $name = $user['name'] ?? 'U';
                     $firstChar = strtoupper(mb_substr($name, 0, 1));
+                    $avatarPath = '';
+                    if ($avatar !== '') {
+                        $avatarPath = str_starts_with($avatar, 'public/')
+                            ? $avatar
+                            : "public/uploads/avatar/" . $avatar;
+                    }
                     ?>
 
-                    <?php if (!empty($avatar) && file_exists("public/uploads/avatar/" . $avatar)): ?>
-                        <img src="public/uploads/avatar/<?= $avatar ?>?v=<?= time() ?>"
+                    <?php if (!empty($avatarPath) && file_exists($avatarPath)): ?>
+                        <img src="<?= htmlspecialchars($avatarPath) ?>?v=<?= time() ?>"
                             class="w-32 h-32 rounded-full object-cover">
                     <?php else: ?>
                         <div class="w-32 h-32 rounded-full bg-emerald-500 flex items-center justify-center text-white text-4xl font-bold">
                             <?= $firstChar ?>
                         </div>
                     <?php endif; ?>
-                    <div class="absolute bottom-2 right-2 w-12 h-12 bg-emerald-500 border-4 border-white rounded-2xl flex items-center justify-center text-white shadow-lg cursor-pointer hover:bg-emerald-600 transition-colors">
-                        <i class="fa fa-camera text-sm"></i>
-                    </div>
                 </div>
 
                 <h2 class="text-3xl font-[900] text-slate-800 mt-8 tracking-tight"><?= $userName ?></h2>

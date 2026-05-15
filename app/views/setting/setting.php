@@ -5,6 +5,12 @@ $userName = $user['name'] ?? '';
 $userEmail = $user['email'] ?? '';
 $userPhone = $user['phone'] ?? '';
 $userAvatar = $user['avatar'] ?? 'default.jpg';
+$userAvatarPath = '';
+if (!empty($userAvatar) && $userAvatar !== 'default.jpg') {
+    $userAvatarPath = str_starts_with($userAvatar, 'public/')
+        ? $userAvatar
+        : "public/uploads/avatar/" . $userAvatar;
+}
 ?>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -28,13 +34,14 @@ $userAvatar = $user['avatar'] ?? 'default.jpg';
     }
 </style>
 
-<div class="max-w-6xl mx-auto py-10 px-6">
+<div>
 
 
     <div class="flex items-center gap-4 mb-10">
 
         <div>
-            <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Cài đặt tài khoản</h1>
+            <p class="text-sm font-black uppercase tracking-widest text-emerald-600">Cài đặt</p>
+            <h1 class="mt-2 text-4xl font-extrabold text-slate-800 tracking-tight">Cài đặt tài khoản</h1>
             <p class="text-slate-500 text-sm font-medium">Quản lý thông tin cá nhân và bảo mật</p>
         </div>
     </div>
@@ -75,9 +82,9 @@ $userAvatar = $user['avatar'] ?? 'default.jpg';
                         $firstChar = strtoupper(mb_substr($name, 0, 1));
                         ?>
 
-                        <?php if (!empty($avatar) && file_exists("public/uploads/avatar/" . $avatar)): ?>
+                        <?php if (!empty($userAvatarPath) && file_exists($userAvatarPath)): ?>
                             <img id="preview"
-                                src="public/uploads/avatar/<?= $avatar ?>?v=<?= time() ?>"
+                                src="<?= htmlspecialchars($userAvatarPath) ?>?v=<?= time() ?>"
                                 class="w-40 h-40 rounded-full object-cover">
                         <?php else: ?>
                             <div id="preview"
@@ -309,17 +316,19 @@ $userAvatar = $user['avatar'] ?? 'default.jpg';
             if (!file) return;
 
             const url = URL.createObjectURL(file);
-            const img = document.getElementById("cropImage");
+            let preview = document.getElementById("preview");
 
-            img.src = url;
-            document.getElementById("cropModal").style.display = "flex";
+            if (preview && preview.tagName === "DIV") {
+                const img = document.createElement("img");
+                img.id = "preview";
+                img.className = "w-40 h-40 rounded-full object-cover";
+                preview.replaceWith(img);
+                preview = img;
+            }
 
-            if (cropper) cropper.destroy();
-
-            cropper = new Cropper(img, {
-                aspectRatio: 1,
-                viewMode: 1
-            });
+            if (preview) {
+                preview.src = url;
+            }
         });
 
     });

@@ -245,12 +245,35 @@ class UserController
         }
 
         // 👉 update DB
-        $updated = $this->model->updateProfile($user['id'], $name, $phone);
+        $avatar = null;
+        if (!empty($_FILES['avatar']['name']) && ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $uploadDir = "public/uploads/avatar/";
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $extension = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+            if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                $extension = 'jpg';
+            }
+
+            $fileName = "avatar_" . $user['id'] . "_" . time() . "." . $extension;
+            $targetPath = $uploadDir . $fileName;
+
+            if (move_uploaded_file($_FILES['avatar']['tmp_name'], $targetPath)) {
+                $avatar = $fileName;
+            }
+        }
+
+        $updated = $this->model->updateProfile($user['id'], $name, $phone, $avatar);
 
         if ($updated) {
             // 🔥 cập nhật lại session luôn (quan trọng)
             $_SESSION['user']['name'] = $name;
             $_SESSION['user']['phone'] = $phone;
+            if ($avatar !== null) {
+                $_SESSION['user']['avatar'] = $avatar;
+            }
 
             header("Location: index.php?controller=user&action=setting&success=1");
             exit;

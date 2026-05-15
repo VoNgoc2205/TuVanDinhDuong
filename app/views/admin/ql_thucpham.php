@@ -32,14 +32,14 @@ $pageUrl = function ($targetPage) use ($keyword) {
         </a>
     </div>
 
-    <form method="GET" action="index.php" class="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_auto_auto]">
+    <form method="GET" action="index.php" class="grid gap-3 md:grid-cols-[1fr_auto_auto]">
         <input type="hidden" name="controller" value="admin">
         <input type="hidden" name="action" value="food">
-        <input type="text" name="keyword" placeholder="Tìm kiếm thực phẩm..." value="<?= htmlspecialchars($keyword) ?>" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+        <input type="text" name="keyword" placeholder="Tìm kiếm thực phẩm..." value="<?= htmlspecialchars($keyword) ?>" class="min-h-[48px] rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
         <button class="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 text-sm font-bold text-white transition hover:bg-emerald-700">
             <i class="fa fa-search"></i> Tìm
         </button>
-        <div class="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-emerald-50 px-4 text-sm font-black text-emerald-700">
+        <div class="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-white px-4 text-sm font-black text-emerald-700">
             <?= number_format($totalFoods) ?> món
         </div>
     </form>

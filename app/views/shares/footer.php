@@ -4,51 +4,37 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 ?>
 
-<footer class="w-full bg-white border-t border-slate-100 py-6 px-8 mt-auto">
-    
-    <div class="w-full flex items-center justify-between">
-
-        <!-- LEFT (SÁT TRÁI) -->
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-leaf text-[10px] text-white"></i>
+<footer class="mt-auto w-full border-t border-slate-200/70 bg-white/85 px-5 py-6 backdrop-blur md:px-8">
+    <div class="flex w-full flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-wrap items-center gap-4">
+            <a href="index.php?controller=default&action=index" class="flex items-center gap-2 no-underline">
+                <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm">
+                    <i class="fas fa-leaf text-xs"></i>
                 </div>
-                <span class="text-slate-900 font-bold text-sm">NutriAI</span>
-            </div>
-
-            <div class="h-4 w-[1px] bg-slate-200 hidden md:block"></div>
-
-            <p class="text-slate-400 text-xs">
-                © 2026 AI Nutrition System. All rights reserved.
-            </p>
+                <span class="font-black text-slate-900">Nutri<span class="text-emerald-500">AI</span></span>
+            </a>
+            <div class="hidden h-5 w-px bg-slate-200 md:block"></div>
+            <p class="text-sm font-semibold text-slate-400">© 2026 NutriAI. All rights reserved.</p>
         </div>
 
-        <!-- RIGHT (SÁT PHẢI) -->
-        <div class="flex items-center gap-10 ml-auto">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+            <nav class="flex flex-wrap items-center gap-5 text-sm font-black uppercase tracking-widest text-slate-500">
+                <a href="#" class="transition hover:text-emerald-600">Điều khoản</a>
+                <a href="#" class="transition hover:text-emerald-600">Bảo mật</a>
+                <a href="#" class="transition hover:text-emerald-600">Hỗ trợ</a>
+            </nav>
 
-            <!-- MENU -->
-            <div class="flex items-center gap-6 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                <a href="#" class="hover:text-green-600 transition">Điều khoản</a>
-                <a href="#" class="hover:text-green-600 transition">Bảo mật</a>
-                <a href="#" class="hover:text-green-600 transition">Hỗ trợ</a>
-            </div>
-
-            <!-- SOCIAL -->
             <div class="flex items-center gap-3">
-                <a href="#" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-green-50 hover:text-green-600 transition">
+                <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600" aria-label="Facebook">
                     <i class="fab fa-facebook-f text-sm"></i>
                 </a>
-                <a href="#" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-green-50 hover:text-green-600 transition">
+                <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600" aria-label="YouTube">
                     <i class="fab fa-youtube text-sm"></i>
                 </a>
-                <a href="#" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-green-50 hover:text-green-600 transition">
+                <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600" aria-label="Instagram">
                     <i class="fab fa-instagram text-sm"></i>
                 </a>
             </div>
-
         </div>
-
     </div>
-
 </footer>
