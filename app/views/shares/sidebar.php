@@ -231,8 +231,8 @@ if ($avatar !== '') {
                 <?php endif; ?>
 
                 <div class="overflow-hidden">
-                    <p class="text-base font-bold text-white truncate">
-                        <?= mb_convert_case(explode(' ', $name)[0], MB_CASE_TITLE, "UTF-8") ?>
+                    <p class="text-base font-bold text-white truncate" title="<?= htmlspecialchars($name) ?>">
+                        <?= htmlspecialchars(mb_convert_case($name, MB_CASE_TITLE, "UTF-8")) ?>
                     </p>
                     <p class="text-xs text-green-500 font-medium mt-1 uppercase tracking-wider">
                         Premium

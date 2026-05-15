@@ -91,6 +91,12 @@ class UserController
                 return;
             }
 
+            if ($this->model->checkPhone($phone)) {
+                $error = "Số điện thoại đã tồn tại!";
+                require "app/views/auth/register.php";
+                return;
+            }
+
             // ===== HASH =====
             $hash = password_hash($password, PASSWORD_BCRYPT);
 
@@ -105,7 +111,7 @@ class UserController
                 header("Location: index.php?controller=user&action=login");
                 exit;
             } else {
-                $error = "Đăng ký thất bại!";
+                $error = "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin!";
             }
         }
 
@@ -218,7 +224,9 @@ class UserController
         $userData = $this->model->getById($user["id"]);
 
         if (!password_verify($old, $userData["password"])) {
-            die("❌ Sai mật khẩu cũ");
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Sai mật khẩu cũ'];
+            header("Location: index.php?controller=user&action=setting");
+            exit;
         }
 
         $hash = password_hash($new, PASSWORD_BCRYPT);
@@ -241,7 +249,9 @@ class UserController
         $phone = trim($_POST['phone'] ?? '');
 
         if (!$name) {
-            die("Tên không được để trống");
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Tên không được để trống'];
+            header("Location: index.php?controller=user&action=setting");
+            exit;
         }
 
         // 👉 update DB
@@ -278,7 +288,9 @@ class UserController
             header("Location: index.php?controller=user&action=setting&success=1");
             exit;
         } else {
-            die("Update thất bại");
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Cập nhật thất bại'];
+            header("Location: index.php?controller=user&action=setting");
+            exit;
         }
     }
 

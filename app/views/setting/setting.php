@@ -226,7 +226,7 @@ if (!empty($userAvatar) && $userAvatar !== 'default.jpg') {
                 <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
-            <button type="submit" onclick="setAction('deleteAccount'); return confirm('Xóa vĩnh viễn tài khoản?')"
+            <button type="submit" data-confirm="Xóa vĩnh viễn tài khoản?" data-confirm-title="Xóa tài khoản" data-confirm-ok="Xóa" data-confirm-action="deleteAccount"
                 class="text-red-500 font-bold hover:text-red-700 transition-colors flex items-center gap-2">
                 <i class="fa fa-trash-can"></i> Xóa tài khoản
             </button>

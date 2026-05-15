@@ -34,7 +34,7 @@ ini_set('display_errors', 0);
                 <article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                     <div class="relative">
                         <img src="<?= htmlspecialchars($imageSrc) ?>" class="h-44 w-full object-cover" alt="">
-                        <a href="index.php?controller=admin&action=deletePopular&ten=<?= urlencode($food['ten_mon']) ?>" onclick="return confirm('Xóa món này?')" class="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-red-600 shadow-sm transition hover:bg-red-50">
+                        <a href="index.php?controller=admin&action=deletePopular&ten=<?= urlencode($food['ten_mon']) ?>" data-confirm="Xóa món này?" data-confirm-title="Xóa món phổ biến" data-confirm-ok="Xóa" class="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-red-600 shadow-sm transition hover:bg-red-50">
                             <i class="fa fa-trash"></i>
                         </a>
                     </div>

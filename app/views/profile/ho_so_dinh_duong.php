@@ -165,8 +165,8 @@ if ($chieu_cao > 0 && $can_nang > 0) {
                 </h3>
                 <div class="flex items-center gap-6">
                     <span class="text-7xl font-[1000] tracking-tighter"><?= $bmi ?></span>
-                    <div class="bg-white/20 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/30">
-                        <span class="text-[12px] font-black tracking-widest uppercase italic"><?= $status ?></span>
+                    <div class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/30">
+                        <span class="whitespace-nowrap text-[10px] font-black uppercase italic"><?= $status ?></span>
                     </div>
                 </div>
                 <p class="mt-10 text-emerald-50 text-base leading-relaxed font-medium italic">

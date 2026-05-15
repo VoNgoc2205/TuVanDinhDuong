@@ -126,7 +126,7 @@ if ($displayContent !== '') {
                         <a href="index.php?controller=benh_an&action=view&id=<?= intval($record['id']) ?>" class="block rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-700 font-bold text-center hover:bg-slate-50 transition">Hủy</a>
                     <?php else: ?>
                         <a href="index.php?controller=benh_an&action=view&id=<?= intval($record['id']) ?>&mode=edit" class="block rounded-2xl bg-emerald-600 px-5 py-4 text-white font-bold text-center hover:bg-emerald-700 transition">Chỉnh sửa</a>
-                        <a href="index.php?controller=benh_an&action=delete&id=<?= intval($record['id']) ?>" onclick="return confirm('Bạn có chắc muốn xóa hồ sơ này?');" class="block rounded-2xl bg-red-600 px-5 py-4 text-white font-bold text-center hover:bg-red-700 transition">Xóa hồ sơ</a>
+                        <a href="index.php?controller=benh_an&action=delete&id=<?= intval($record['id']) ?>" data-confirm="Bạn có chắc muốn xóa hồ sơ này?" data-confirm-title="Xóa hồ sơ" data-confirm-ok="Xóa" class="block rounded-2xl bg-red-600 px-5 py-4 text-white font-bold text-center hover:bg-red-700 transition">Xóa hồ sơ</a>
                     <?php endif; ?>
                 </div>
             </div>

@@ -34,7 +34,11 @@ class UserModel
         $sql = "INSERT INTO users (name, phone, email, password) VALUES (?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ssss", $name, $phone, $email, $password);
-        return $stmt->execute() ? $this->conn->insert_id : false;
+        try {
+            return $stmt->execute() ? $this->conn->insert_id : false;
+        } catch (mysqli_sql_exception $e) {
+            return false;
+        }
     }
 
     public function checkEmail($email)
@@ -42,6 +46,15 @@ class UserModel
         $sql = "SELECT id FROM users WHERE email = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("s", $email);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
+    }
+
+    public function checkPhone($phone)
+    {
+        $sql = "SELECT id FROM users WHERE phone = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $phone);
         $stmt->execute();
         return $stmt->get_result()->num_rows > 0;
     }

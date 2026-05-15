@@ -1,6 +1,7 @@
 <?php
 require_once "app/models/DashboardModel.php";
 require_once "app/helpers/SessionHelper.php";
+require_once "app/helpers/NutritionTargetHelper.php";
 
 class DashboardController
 {
@@ -41,6 +42,11 @@ class DashboardController
         // ===== TARGET =====
         $profile = $this->model->getProfile($user_id);
         $target_calo = intval($profile['kcal_target'] ?? 2000);
+        $macroTargets = NutritionTargetHelper::calculateMacroTargets($profile ?? []);
+        $proteinTarget = $macroTargets['protein'];
+        $carbsTarget = $macroTargets['carbs'];
+        $fatTarget = $macroTargets['fat'];
+        $macroTargetReason = $macroTargets['reason'];
         $percent_completed = ($target_calo > 0) 
             ? ($calo_today / $target_calo) * 100 
             : 0;

@@ -108,9 +108,9 @@ if ($foodCalo == 0) {
     }
 </style>
 
-<div class="flex bg-[#f8fafc] min-h-screen w-full">
+<div class="w-full">
 
-    <main class="flex-1 p-4 md:p-8 w-full overflow-x-hidden">
+    <main class="w-full overflow-x-hidden">
 
         <div class="max-w-full mx-auto space-y-6">
 
@@ -239,7 +239,7 @@ if ($foodCalo == 0) {
                             class="hidden mb-4 px-5 py-3 rounded-2xl font-semibold text-sm">
                         </div>
                         <div class="flex gap-4 mt-10">
-                            <button onclick="saveMeal()" class="flex-[2] bg-slate-900 text-white py-4 rounded-xl font-black text-sm hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
+                            <button id="saveMealButton" onclick="saveMeal()" class="flex-[2] bg-slate-900 text-white py-4 rounded-xl font-black text-sm hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
                                 <i class="fa fa-cloud-arrow-up"></i> XÁC NHẬN LƯU
                             </button>
                             <button onclick="window.history.back()" class="flex-1 bg-slate-100 text-slate-400 py-4 rounded-xl font-black text-sm hover:bg-rose-50 hover:text-rose-500 transition-all">
@@ -261,8 +261,16 @@ if ($foodCalo == 0) {
 function saveMeal() {
 
     if (!window.currentFood) {
-        notify("Không có dữ liệu món ăn", "error");
+        showSaveNotice("Không có dữ liệu món ăn", "error");
         return;
+    }
+
+    const saveButton = document.getElementById("saveMealButton");
+    const originalButtonHtml = saveButton ? saveButton.innerHTML : "";
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.classList.add("opacity-70", "cursor-not-allowed");
+        saveButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> ĐANG LƯU...';
     }
 
     const ingredientGram = (window.currentFood.ingredients || []).reduce((sum, item) => {
@@ -295,19 +303,54 @@ function saveMeal() {
     })
     .then(res => res.text())
     .then(res => {
-        console.log(res);
+        const result = String(res || "").trim();
+        console.log(result);
 
-        if (res === "OK") {
-            notify("Lưu thành công", "success");
-            location.reload();
+        if (result === "OK") {
+            showSaveNotice("Đã lưu thành công", "success");
+            if (saveButton) {
+                saveButton.innerHTML = '<i class="fa fa-check"></i> ĐÃ LƯU';
+            }
+            setTimeout(() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set("success", "1");
+                window.location.href = url.toString();
+            }, 900);
         } else {
-            notify(res, "error");
+            showSaveNotice(result || "Lưu thất bại", "error");
+            resetSaveButton();
         }
     })
     .catch(err => {
         console.error(err);
-        notify("Lỗi server", "error");
+        showSaveNotice("Lỗi server, vui lòng thử lại", "error");
+        resetSaveButton();
     });
+
+    function resetSaveButton() {
+        if (!saveButton) return;
+        saveButton.disabled = false;
+        saveButton.classList.remove("opacity-70", "cursor-not-allowed");
+        saveButton.innerHTML = originalButtonHtml;
+    }
+}
+function showSaveNotice(message, type = "info") {
+    if (typeof notify === "function") {
+        notify(message, type);
+        return;
+    }
+
+    if (window.Swal) {
+        Swal.fire({
+            icon: type === "success" ? "success" : "error",
+            title: message,
+            timer: 1800,
+            showConfirmButton: false
+        });
+        return;
+    }
+
+    console[type === "success" ? "log" : "error"](message);
 }
 function toggleNutritionDetails() {
     const box = document.getElementById("nutritionDetails");

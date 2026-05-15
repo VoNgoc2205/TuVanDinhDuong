@@ -177,6 +177,9 @@ if (session_status() === PHP_SESSION_NONE) {
                             <div class="mt-2 flex min-h-[56px] items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-emerald-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
                                 <i class="fa fa-lock text-slate-400"></i>
                                 <input type="password" name="password" required class="ml-3 w-full bg-transparent font-semibold text-slate-800 outline-none">
+                                <button type="button" class="toggle-password ml-3 grid h-9 w-9 shrink-0 place-items-center text-slate-400 transition hover:text-emerald-600" aria-label="Hiện mật khẩu">
+                                    <i class="fa fa-eye pointer-events-none"></i>
+                                </button>
                             </div>
                         </div>
                         <div>
@@ -184,6 +187,9 @@ if (session_status() === PHP_SESSION_NONE) {
                             <div class="mt-2 flex min-h-[56px] items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 transition focus-within:border-emerald-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-100">
                                 <i class="fa fa-shield-heart text-slate-400"></i>
                                 <input type="password" name="confirm_password" required class="ml-3 w-full bg-transparent font-semibold text-slate-800 outline-none">
+                                <button type="button" class="toggle-password ml-3 grid h-9 w-9 shrink-0 place-items-center text-slate-400 transition hover:text-emerald-600" aria-label="Hiện mật khẩu">
+                                    <i class="fa fa-eye pointer-events-none"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -202,5 +208,21 @@ if (session_status() === PHP_SESSION_NONE) {
     </main>
 
     <?php require "app/views/shares/footer.php"; ?>
+    <script>
+        document.addEventListener("click", function(e) {
+            const button = e.target.closest(".toggle-password");
+            if (!button) return;
+
+            const input = button.parentElement.querySelector("input");
+            const icon = button.querySelector("i");
+            if (!input || !icon) return;
+
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            icon.classList.toggle("fa-eye", !isHidden);
+            icon.classList.toggle("fa-eye-slash", isHidden);
+            button.setAttribute("aria-label", isHidden ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+        });
+    </script>
 </body>
 </html>
