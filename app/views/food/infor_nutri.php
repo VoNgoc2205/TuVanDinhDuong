@@ -119,6 +119,7 @@ if ($foodCalo == 0) {
                     <i class="fa fa-arrow-left text-sm"></i>
                 </button>
                 <div>
+                    <p class="text-sm font-black uppercase tracking-widest text-emerald-600">Kết quả AI</p>
                     <h1 class="text-4xl font-bold text-slate-800 flex items-center gap-2">
 
                         Kết quả phân tích AI

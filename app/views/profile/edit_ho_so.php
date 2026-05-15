@@ -16,7 +16,7 @@ if (!empty($profile['medical_analysis'])) {
 }
 ?>
 
-<div class="max-w-[1600px] mx-auto px-4 lg:px-8 py-6 space-y-8">
+<div class="space-y-8">
 
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/50 p-6 rounded-[2rem] backdrop-blur-md">
         <div>

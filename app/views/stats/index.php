@@ -4,6 +4,24 @@ $month = $overview['month'] ?? [];
 $target = max(1, intval($overview['target'] ?? 2000));
 $todayCalo = floatval($today['calo'] ?? 0);
 $percent = min(100, ($todayCalo / $target) * 100);
+$topFoods = array_slice($topFoods ?? [], 0, 5);
+$last7Days = $last7Days ?? [
+    'labels' => [],
+    'calories' => [],
+    'protein' => [],
+    'carb' => [],
+    'fat' => [],
+];
+
+if (empty($last7Days['labels']) || empty($last7Days['calories'])) {
+    $last7Days['labels'] = [];
+    $last7Days['calories'] = [];
+
+    for ($i = 6; $i >= 0; $i--) {
+        $last7Days['labels'][] = date('d/m', strtotime("-{$i} days"));
+        $last7Days['calories'][] = 0;
+    }
+}
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

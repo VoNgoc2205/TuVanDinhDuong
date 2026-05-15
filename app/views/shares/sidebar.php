@@ -8,7 +8,33 @@ $userRole = $user['role'] ?? 'user';
 $name = $user['name'] ?? 'User';
 $avatar = $user['avatar'] ?? '';
 $firstChar = strtoupper(mb_substr($name, 0, 1));
+$avatarPath = '';
+if ($avatar !== '') {
+    $avatarPath = str_starts_with($avatar, 'public/')
+        ? $avatar
+        : "public/uploads/avatar/" . $avatar;
+}
 ?>
+
+<style>
+    .app-sidebar-nav a {
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.45;
+    }
+
+    .app-sidebar-nav a i {
+        width: 22px;
+        min-width: 22px;
+        text-align: center;
+        font-size: 1.12rem;
+    }
+
+    .app-sidebar-nav a span {
+        font-size: inherit;
+        font-weight: 700;
+    }
+</style>
 
 <aside class="fixed top-0 left-0 w-[300px] h-screen bg-slate-900 text-slate-300 z-[1100] shadow-2xl flex flex-col">
 
@@ -25,15 +51,15 @@ $firstChar = strtoupper(mb_substr($name, 0, 1));
         </a>
 
         <!-- MENU -->
-        <nav class="space-y-2 flex-1">
+        <nav class="app-sidebar-nav space-y-2 flex-1">
 
             <?php if (!$user): ?>
                 <!-- CHƯA LOGIN -->
                 <a href="index.php"
-                    class="flex items-center gap-4 px-5 py-4 rounded-xl
-            <?= $currentController == '' ? 'bg-green-600 text-white' : 'hover:bg-slate-800' ?>">
-                    <i class="fa fa-home"></i>
-                    Trang chủ
+                    class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-base
+            <?= $currentController == '' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'hover:bg-slate-800 hover:text-white' ?>">
+                    <i class="fa fa-home text-lg"></i>
+                    <span class="font-semibold">Trang chủ</span>
                 </a>
 
                 <a href="index.php?controller=user&action=login"
@@ -45,10 +71,10 @@ $firstChar = strtoupper(mb_substr($name, 0, 1));
             <?php elseif ($userRole == "user"): ?>
 
                 <a href="index.php?controller=dashboard&action=index"
-                    class="flex items-center gap-4 px-5 py-4 rounded-xl
-            <?= $currentController == 'dashboard' ? 'bg-green-600 text-white' : 'hover:bg-slate-800' ?>">
-                    <i class="fa fa-home"></i>
-                    Trang chủ
+                    class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-base
+                    <?= $currentController == 'dashboard' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'hover:bg-slate-800 hover:text-white' ?>">
+                    <i class="fa fa-home text-lg"></i>
+                    <span class="font-semibold">Trang chủ</span>
                 </a>
 
                 <a href="index.php?controller=nutrition&action=list"
@@ -114,7 +140,7 @@ $firstChar = strtoupper(mb_substr($name, 0, 1));
 
                 <!-- DASHBOARD -->
                 <a href="index.php?controller=admin&action=dashboard"
-                    class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all
+                    class="flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-base
         <?= ($currentController == 'admin' && $currentAction == 'dashboard')
                     ? 'bg-green-600 text-white shadow-lg shadow-green-600/20'
                     : 'hover:bg-slate-800 hover:text-white' ?>">
@@ -195,8 +221,8 @@ $firstChar = strtoupper(mb_substr($name, 0, 1));
         <?php if (!empty($user)): ?>
             <div class="mt-auto border-t border-slate-800 pt-6 flex items-center gap-4">
 
-                <?php if (!empty($avatar) && file_exists("public/uploads/avatar/" . $avatar)): ?>
-                    <img src="public/uploads/avatar/<?= $avatar ?>?v=<?= time() ?>"
+                <?php if (!empty($avatarPath) && file_exists($avatarPath)): ?>
+                    <img src="<?= htmlspecialchars($avatarPath) ?>?v=<?= time() ?>"
                         class="w-10 h-10 rounded-full object-cover">
                 <?php else: ?>
                     <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">

@@ -13,6 +13,14 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .system-page-bg {
+            background:
+                radial-gradient(circle at 16% 12%, rgba(16, 185, 129, .12), transparent 28%),
+                radial-gradient(circle at 86% 18%, rgba(59, 130, 246, .08), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #eefdf6 100%);
         }
 
         .glass-card {
@@ -20,14 +28,105 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
+
+        .falling-pattern {
+            position: fixed;
+            inset: 66px 0 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .falling-pattern span {
+            position: absolute;
+            top: -80px;
+            display: flex;
+            width: 42px;
+            height: 42px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.72);
+            color: rgba(16, 185, 129, 0.72);
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+            animation: nutrientFall linear infinite;
+        }
+
+        .falling-pattern span:nth-child(1) { left: 6%; animation-duration: 18s; animation-delay: -7s; }
+        .falling-pattern span:nth-child(2) { left: 14%; animation-duration: 24s; animation-delay: -14s; color: rgba(249, 115, 22, 0.62); }
+        .falling-pattern span:nth-child(3) { left: 23%; animation-duration: 20s; animation-delay: -3s; transform: scale(.82); }
+        .falling-pattern span:nth-child(4) { left: 35%; animation-duration: 27s; animation-delay: -18s; color: rgba(59, 130, 246, 0.58); }
+        .falling-pattern span:nth-child(5) { left: 47%; animation-duration: 22s; animation-delay: -11s; transform: scale(.9); }
+        .falling-pattern span:nth-child(6) { left: 58%; animation-duration: 26s; animation-delay: -5s; color: rgba(245, 158, 11, 0.62); }
+        .falling-pattern span:nth-child(7) { left: 69%; animation-duration: 19s; animation-delay: -13s; }
+        .falling-pattern span:nth-child(8) { left: 78%; animation-duration: 25s; animation-delay: -8s; color: rgba(59, 130, 246, 0.55); }
+        .falling-pattern span:nth-child(9) { left: 88%; animation-duration: 21s; animation-delay: -16s; color: rgba(249, 115, 22, 0.6); }
+        .falling-pattern span:nth-child(10) { left: 95%; animation-duration: 28s; animation-delay: -2s; transform: scale(.78); }
+        .falling-pattern span:nth-child(11) { left: 2%; animation-duration: 23s; animation-delay: -19s; transform: scale(.68); color: rgba(16, 185, 129, 0.5); }
+        .falling-pattern span:nth-child(12) { left: 18%; animation-duration: 17s; animation-delay: -9s; transform: scale(.72); color: rgba(59, 130, 246, 0.48); }
+        .falling-pattern span:nth-child(13) { left: 31%; animation-duration: 29s; animation-delay: -24s; transform: scale(.65); color: rgba(245, 158, 11, 0.5); }
+        .falling-pattern span:nth-child(14) { left: 42%; animation-duration: 16s; animation-delay: -6s; transform: scale(.7); color: rgba(249, 115, 22, 0.52); }
+        .falling-pattern span:nth-child(15) { left: 53%; animation-duration: 18s; animation-delay: -21s; transform: scale(.62); color: rgba(16, 185, 129, 0.52); }
+        .falling-pattern span:nth-child(16) { left: 64%; animation-duration: 30s; animation-delay: -15s; transform: scale(.74); color: rgba(59, 130, 246, 0.46); }
+        .falling-pattern span:nth-child(17) { left: 73%; animation-duration: 15s; animation-delay: -4s; transform: scale(.6); color: rgba(245, 158, 11, 0.5); }
+        .falling-pattern span:nth-child(18) { left: 84%; animation-duration: 20s; animation-delay: -12s; transform: scale(.7); color: rgba(16, 185, 129, 0.5); }
+        .falling-pattern span:nth-child(19) { left: 91%; animation-duration: 18s; animation-delay: -20s; transform: scale(.58); color: rgba(249, 115, 22, 0.48); }
+        .falling-pattern span:nth-child(20) { left: 99%; animation-duration: 24s; animation-delay: -10s; transform: scale(.66); color: rgba(59, 130, 246, 0.44); }
+
+        @keyframes nutrientFall {
+            0% {
+                transform: translate3d(0, -90px, 0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: .85;
+            }
+            50% {
+                transform: translate3d(32px, 50vh, 0) rotate(160deg);
+            }
+            100% {
+                transform: translate3d(-24px, calc(100vh + 110px), 0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .falling-pattern span {
+                animation: none;
+                opacity: .18;
+            }
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 min-h-screen flex flex-col">
+<body class="system-page-bg min-h-screen flex flex-col">
 
     <?php require "app/views/shares/header.php"; ?>
 
-    <main class="flex-grow flex flex-col items-center justify-center px-4 py-12">
+    <div class="falling-pattern" aria-hidden="true">
+        <span><i class="fa fa-leaf"></i></span>
+        <span><i class="fa fa-carrot"></i></span>
+        <span><i class="fa fa-apple-whole"></i></span>
+        <span><i class="fa fa-droplet"></i></span>
+        <span><i class="fa fa-seedling"></i></span>
+        <span><i class="fa fa-bowl-food"></i></span>
+        <span><i class="fa fa-lemon"></i></span>
+        <span><i class="fa fa-heart-pulse"></i></span>
+        <span><i class="fa fa-utensils"></i></span>
+        <span><i class="fa fa-wheat-awn"></i></span>
+        <span><i class="fa fa-leaf"></i></span>
+        <span><i class="fa fa-droplet"></i></span>
+        <span><i class="fa fa-bowl-rice"></i></span>
+        <span><i class="fa fa-carrot"></i></span>
+        <span><i class="fa fa-seedling"></i></span>
+        <span><i class="fa fa-heart"></i></span>
+        <span><i class="fa fa-lemon"></i></span>
+        <span><i class="fa fa-apple-whole"></i></span>
+        <span><i class="fa fa-utensils"></i></span>
+        <span><i class="fa fa-droplet"></i></span>
+    </div>
+
+    <main class="relative z-10 flex-grow flex flex-col items-center justify-center px-4 py-12">
 
         <div class="max-w-4xl text-center space-y-6 mb-16">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold tracking-wide uppercase mb-4 animate-bounce">

@@ -37,7 +37,7 @@ $fat = 70;
     }
 </style>
 
-<div class="p-6 lg:p-12 max-w-[1600px] mx-auto space-y-10">
+<div class="space-y-10">
 
     <header class="flex flex-col md:flex-row justify-between items-end gap-6">
         <div class="pl-2">

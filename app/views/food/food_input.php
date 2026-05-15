@@ -29,17 +29,20 @@ if (session_status() === PHP_SESSION_NONE) {
     }
 </style>
 
-<div class="flex min-h-screen">
+<div>
 
-    <main class="flex-1 p-6 md:p-10">
-        <div class="max-w-[1200px] mx-auto">
+    <main class="w-full">
+        <div class="w-full">
             <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
+                    <p class="text-sm font-black uppercase tracking-widest text-emerald-600">Phân tích thực phẩm</p>
                     <h1 class="text-4xl font-[800] text-slate-800 tracking-tight flex items-center gap-3">
 
                         Nhận diện món ăn
                     </h1>
-                    
+                    <p class="mt-2 text-slate-500 font-semibold">
+                        Nhập thông tin hoặc tải ảnh món ăn để AI phân tích calo và thành phần dinh dưỡng.
+                    </p>
                 </div>
 
                 <div class="bg-slate-200/50 p-1 rounded-[1.5rem] flex gap-1 w-full md:w-auto">

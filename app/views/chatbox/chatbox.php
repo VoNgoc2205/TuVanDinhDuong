@@ -43,8 +43,8 @@ $activeConversationId = $activeConversationId ?? null;
     }
 </style>
 
-<div class="chat-shell p-4 md:p-6">
-    <div class="mx-auto grid max-w-7xl grid-cols-12 gap-5">
+<div class="chat-shell">
+    <div class="grid grid-cols-12 gap-5">
         <aside class="col-span-12 lg:col-span-4 xl:col-span-3">
             <div class="h-full rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-100 p-5">
@@ -146,8 +146,8 @@ $activeConversationId = $activeConversationId ?? null;
                     <?php if (empty($messages)): ?>
                         <div class="message-appear flex justify-start">
                             <div class="max-w-[88%] rounded-3xl rounded-tl-lg border border-slate-200 bg-white px-5 py-4 text-slate-700 shadow-sm md:max-w-[72%]">
-                                <p class="font-bold text-slate-900">Chào bạn, mình là NutriAI.</p>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-600">Chào bạn, NutriAI có thể giúp gì cho bạn?</p>
+                                <p id="nutriai-greeting-title" class="font-bold text-slate-900">Chào bạn, mình là NutriAI.</p>
+                                <p id="nutriai-greeting-message" class="mt-2 text-sm leading-relaxed text-slate-600">NutriAI có thể giúp gì cho bạn?</p>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -509,5 +509,37 @@ input.addEventListener('input', () => {
 });
 
 scrollChat();
+
+function updateNutriGreeting() {
+    const title = document.getElementById('nutriai-greeting-title');
+    const message = document.getElementById('nutriai-greeting-message');
+    if (!title || !message) return;
+
+    const hour = new Date().getHours();
+    let greeting = 'Chào bạn, mình là NutriAI.';
+    let suggestion = 'NutriAI có thể giúp gì cho bạn hôm nay?';
+
+    if (hour >= 5 && hour < 11) {
+        greeting = 'Chào buổi sáng, mình là NutriAI.';
+        suggestion = 'Bạn muốn kiểm tra bữa sáng, tính calo hay lên thực đơn cho hôm nay?';
+    } else if (hour >= 11 && hour < 14) {
+        greeting = 'Chào buổi trưa, mình là NutriAI.';
+        suggestion = 'Bạn cần gợi ý bữa trưa cân bằng hay xem món vừa ăn có bao nhiêu calo?';
+    } else if (hour >= 14 && hour < 18) {
+        greeting = 'Chào buổi chiều, mình là NutriAI.';
+        suggestion = 'Mình có thể giúp bạn chọn bữa phụ, theo dõi calo hoặc đọc ảnh món ăn.';
+    } else if (hour >= 18 && hour < 23) {
+        greeting = 'Chào buổi tối, mình là NutriAI.';
+        suggestion = 'Bạn muốn tối nay ăn nhẹ hơn, đủ chất hơn hay kiểm tra khẩu phần?';
+    } else {
+        greeting = 'Khuya rồi, mình là NutriAI.';
+        suggestion = 'Mình có thể gợi ý món nhẹ, dễ tiêu hoặc giúp bạn ghi lại bữa ăn.';
+    }
+
+    title.innerText = greeting;
+    message.innerText = suggestion;
+}
+
+updateNutriGreeting();
 </script>
 

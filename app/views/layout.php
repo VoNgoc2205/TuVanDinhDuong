@@ -20,10 +20,89 @@ $userAvatar = $_SESSION["user"]["avatar"] ?? "default.jpg";
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #F8FAFC; 
+            background:
+                radial-gradient(circle at 16% 12%, rgba(16, 185, 129, .10), transparent 28%),
+                radial-gradient(circle at 86% 18%, rgba(59, 130, 246, .07), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #eefdf6 100%);
             margin: 0;
+            font-size: 16px;
+        }
+        body, button, input, select, textarea, table {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        p, li, td, th, label, input, select, textarea, button, a {
+            line-height: 1.55;
+        }
+        .text-xs {
+            font-size: 0.92rem !important;
+        }
+        .text-sm {
+            font-size: 1rem !important;
+        }
+        .text-base {
+            font-size: 1.05rem !important;
+        }
+        .text-\[10px\],
+        .text-\[11px\] {
+            font-size: 0.88rem !important;
+        }
+        .text-\[12px\] {
+            font-size: 0.94rem !important;
+        }
+        .uppercase[class*="tracking"] {
+            font-size: 0.92rem !important;
+        }
+        input, select, textarea, button {
+            font-size: 1rem !important;
+        }
+        td, th {
+            font-size: 1rem;
+        }
+        main h1 {
+            font-size: 2.35rem !important;
+            line-height: 1.15 !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.01em;
+            color: #0f172a;
+        }
+        @media (max-width: 768px) {
+            main h1 {
+                font-size: 2rem !important;
+            }
         }
         /* Tùy chỉnh thanh cuộn cho mượt */
+        .app-content-shell {
+            width: min(100%, 1240px);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .app-content-shell > div:first-child,
+        .app-content-shell > main:first-child {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        .app-content-shell > div:first-child[class*="p-"],
+        .app-content-shell > div:first-child[class*="px-"],
+        .app-content-shell > div:first-child[class*="py-"],
+        .app-content-shell > main:first-child[class*="p-"],
+        .app-content-shell > main:first-child[class*="px-"],
+        .app-content-shell > main:first-child[class*="py-"] {
+            padding: 0 !important;
+        }
+        .app-content-shell > div:first-child > div[class*="max-w-"],
+        .app-content-shell > main:first-child > div[class*="max-w-"] {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        @media (min-width: 1024px) {
+            main.app-main {
+                padding: 44px 36px !important;
+            }
+        }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
@@ -32,11 +111,11 @@ $userAvatar = $_SESSION["user"]["avatar"] ?? "default.jpg";
         
     </style>
 </head>
-<body class="bg-[#F8FAFC]">
+<body>
 
     <div class="flex h-screen overflow-hidden">
 
-        <aside class="w-[320px] h-full bg-white border-r border-slate-100 flex-shrink-0 hidden md:block">
+        <aside class="w-[300px] h-full bg-slate-900 flex-shrink-0 hidden md:block">
             <?php include "app/views/shares/sidebar.php"; ?>
         </aside>
 
@@ -44,8 +123,8 @@ $userAvatar = $_SESSION["user"]["avatar"] ?? "default.jpg";
             
             
 
-            <main class="flex-1 overflow-y-auto p-4 lg:p-8">
-                <div class="max-w-[1400px] mx-auto">
+            <main class="app-main flex-1 overflow-y-auto p-4 lg:p-8">
+                <div class="app-content-shell">
                     <div id="notification-container" class="mb-5 space-y-3"></div>
                     <?php echo $content ?? 'Chưa có nội dung'; ?>
                 </div>

@@ -11,7 +11,7 @@ $isSelf = (int)($user['id'] ?? 0) === (int)($_SESSION['user']['id'] ?? 0);
         <div>
             <p class="text-xs font-black uppercase tracking-[0.25em] text-emerald-600">Người dùng</p>
             <h1 class="mt-2 text-3xl font-black text-slate-900">Chỉnh sửa người dùng</h1>
-            <p class="mt-2 text-sm text-slate-500">Cập nhật thông tin, vai trò và trạng thái tài khoản.</p>
+            <p class="mt-2 text-sm text-slate-500">Admin chỉ cập nhật vai trò và trạng thái tài khoản.</p>
         </div>
         <a href="index.php?controller=admin&action=user" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
             <i class="fa fa-arrow-left"></i> Quay lại
@@ -24,11 +24,13 @@ $isSelf = (int)($user['id'] ?? 0) === (int)($_SESSION['user']['id'] ?? 0);
         <div class="grid gap-4 md:grid-cols-2">
             <div>
                 <label class="mb-2 block text-sm font-bold text-slate-600">Họ và tên</label>
-                <input type="text" name="name" value="<?= htmlspecialchars($name) ?>" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                <input type="text" value="<?= htmlspecialchars($name) ?>" readonly class="min-h-[52px] w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-100 px-4 text-sm font-semibold text-slate-500 outline-none">
+                <p class="mt-2 text-xs font-semibold text-slate-400">Admin không có quyền chỉnh sửa họ tên người dùng.</p>
             </div>
             <div>
                 <label class="mb-2 block text-sm font-bold text-slate-600">Email</label>
-                <input type="email" name="email" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required class="min-h-[52px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                <input type="email" value="<?= htmlspecialchars($user['email'] ?? '') ?>" readonly class="min-h-[52px] w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-100 px-4 text-sm font-semibold text-slate-500 outline-none">
+                <p class="mt-2 text-xs font-semibold text-slate-400">Admin không có quyền chỉnh sửa email người dùng.</p>
             </div>
             <div>
                 <label class="mb-2 block text-sm font-bold text-slate-600">Vai trò</label>

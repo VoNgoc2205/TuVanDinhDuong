@@ -10,6 +10,7 @@ class UserModel
         $db = new Database();
         $this->conn = $db->getConnection();
         $this->ensureStatusColumn();
+        $this->ensureAvatarColumn();
     }
 
     private function ensureStatusColumn()
@@ -20,12 +21,20 @@ class UserModel
         }
     }
 
+    private function ensureAvatarColumn()
+    {
+        $result = $this->conn->query("SHOW COLUMNS FROM users LIKE 'avatar'");
+        if ($result && $result->num_rows === 0) {
+            $this->conn->query("ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT NULL AFTER email");
+        }
+    }
+
     public function createUser($name, $phone, $email, $password)
     {
         $sql = "INSERT INTO users (name, phone, email, password) VALUES (?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ssss", $name, $phone, $email, $password);
-        return $stmt->execute();
+        return $stmt->execute() ? $this->conn->insert_id : false;
     }
 
     public function checkEmail($email)
@@ -99,11 +108,17 @@ public function updatePassword($id, $password)
     return $stmt->execute();
 }
 
-public function updateProfile($id, $name, $phone)
+public function updateProfile($id, $name, $phone, $avatar = null)
 {
-    $sql = "UPDATE users SET name = ?, phone = ? WHERE id = ?";
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bind_param("ssi", $name, $phone, $id);
+    if ($avatar !== null) {
+        $sql = "UPDATE users SET name = ?, phone = ?, avatar = ? WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("sssi", $name, $phone, $avatar, $id);
+    } else {
+        $sql = "UPDATE users SET name = ?, phone = ? WHERE id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ssi", $name, $phone, $id);
+    }
 
     return $stmt->execute();
 }

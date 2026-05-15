@@ -16,23 +16,23 @@ $currentAdminId = (int)($_SESSION['user']['id'] ?? 0);
         </a>
     </div>
 
-    <form method="GET" action="index.php" class="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm xl:grid-cols-[auto_1fr_auto_auto_auto]">
+    <form method="GET" action="index.php" class="grid gap-3 xl:grid-cols-[auto_1fr_auto_auto_auto]">
         <input type="hidden" name="controller" value="admin">
         <input type="hidden" name="action" value="user">
 
-        <div class="inline-flex items-center justify-center rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700">
+        <div class="inline-flex items-center justify-center rounded-2xl bg-white px-4 py-3 text-sm font-black text-emerald-700">
             Tổng: <?= number_format($totalUsers) ?>
         </div>
 
-        <input type="text" name="keyword" value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>" placeholder="Tìm theo tên hoặc email..." class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+        <input type="text" name="keyword" value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>" placeholder="Tìm theo tên hoặc email..." class="min-h-[48px] rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
 
-        <select name="role" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+        <select name="role" class="min-h-[48px] rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
             <option value="">Tất cả vai trò</option>
             <option value="admin" <?= ($_GET['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
             <option value="user" <?= ($_GET['role'] ?? '') === 'user' ? 'selected' : '' ?>>User</option>
         </select>
 
-        <select name="status" class="min-h-[48px] rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+        <select name="status" class="min-h-[48px] rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
             <option value="">Tất cả trạng thái</option>
             <option value="active" <?= ($_GET['status'] ?? '') === 'active' ? 'selected' : '' ?>>Đang hoạt động</option>
             <option value="locked" <?= ($_GET['status'] ?? '') === 'locked' ? 'selected' : '' ?>>Đã khóa</option>
