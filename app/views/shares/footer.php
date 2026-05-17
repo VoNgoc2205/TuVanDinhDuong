@@ -22,6 +22,9 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="#" class="transition hover:text-emerald-600">Điều khoản</a>
                 <a href="#" class="transition hover:text-emerald-600">Bảo mật</a>
                 <a href="#" class="transition hover:text-emerald-600">Hỗ trợ</a>
+                <?php if (!empty($_SESSION['user']) && (($_SESSION['user']['vai_tro'] ?? $_SESSION['user']['role'] ?? '') === 'admin')): ?>
+                    <a href="index.php?controller=admin&action=dashboard" class="transition hover:text-emerald-600">Quản trị</a>
+                <?php endif; ?>
             </nav>
 
             <div class="flex items-center gap-3">

@@ -1,0 +1,30 @@
+{
+  "name": "NutriAI - Hệ thống dinh dưỡng",
+  "short_name": "NutriAI",
+  "description": "Theo dõi dinh dưỡng, phân tích món ăn và nhận gợi ý thực đơn thông minh.",
+  "start_url": "../index.php",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "icons/nutriai-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/nutriai-logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/nutriai-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

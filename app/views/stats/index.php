@@ -8,6 +8,10 @@ $topFoods = array_slice($topFoods ?? [], 0, 5);
 $selectedMonth = $selectedMonth ?? date('Y-m');
 $selectedMonthLabel = date('m/Y', strtotime($selectedMonth . '-01'));
 $selectedYear = intval(date('Y', strtotime($selectedMonth . '-01')));
+function formatIntNoComma($value): string
+{
+    return (string) (int) round((float) $value);
+}
 $last7Days = $last7Days ?? [
     'labels' => [],
     'calories' => [],
@@ -58,8 +62,8 @@ if (empty($last7Days['labels']) || empty($last7Days['calories'])) {
         <div class="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
             <p class="text-sm font-bold text-slate-400">Calo hôm nay</p>
             <div class="mt-3 flex items-end gap-2">
-                <span class="text-4xl font-black text-slate-900"><?= number_format($todayCalo) ?></span>
-                <span class="mb-1 text-sm font-bold text-slate-400">/ <?= number_format($target) ?> kcal</span>
+                <span class="text-4xl font-black text-slate-900"><?= formatIntNoComma($todayCalo) ?></span>
+                <span class="mb-1 text-sm font-bold text-slate-400">/ <?= formatIntNoComma($target) ?> kcal</span>
             </div>
             <div class="mt-4 h-2 rounded-full bg-slate-100">
                 <div class="h-full rounded-full bg-emerald-500" style="width: <?= $percent ?>%"></div>
@@ -74,13 +78,13 @@ if (empty($last7Days['labels']) || empty($last7Days['calories'])) {
 
         <div class="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
             <p class="text-sm font-bold text-slate-400">Calo tháng <?= htmlspecialchars($selectedMonthLabel) ?></p>
-            <p class="mt-3 text-4xl font-black text-slate-900"><?= number_format(floatval($month['calo'] ?? 0)) ?></p>
+            <p class="mt-3 text-4xl font-black text-slate-900"><?= formatIntNoComma($month['calo'] ?? 0) ?></p>
             <p class="mt-2 text-sm text-slate-500"><?= intval($month['meals'] ?? 0) ?> bữa · <?= intval($month['items'] ?? 0) ?> món</p>
         </div>
 
         <div class="rounded-3xl bg-white p-6 shadow-sm border border-slate-100">
             <p class="text-sm font-bold text-slate-400">Lượt AI phản hồi</p>
-            <p class="mt-3 text-4xl font-black text-slate-900"><?= number_format(intval($overview['ai_messages'] ?? 0)) ?></p>
+            <p class="mt-3 text-4xl font-black text-slate-900"><?= formatIntNoComma($overview['ai_messages'] ?? 0) ?></p>
             <p class="mt-2 text-sm text-slate-500">Tin nhắn AI đã hỗ trợ bạn</p>
         </div>
     </div>
@@ -134,7 +138,7 @@ if (empty($last7Days['labels']) || empty($last7Days['calories'])) {
                 $maxMacro = max(1, max(array_column($macros, 'value')));
                 $macroScale = max(100, (int)(ceil($maxMacro / 50) * 50));
                 ?>
-                <p class="text-xs font-bold text-slate-400">Thang đo <?= number_format($macroScale) ?>g</p>
+                <p class="text-xs font-bold text-slate-400">Thang đo <?= formatIntNoComma($macroScale) ?>g</p>
                 <?php foreach ($macros as $macro): ?>
                     <div>
                         <div class="mb-2 flex justify-between text-sm">
@@ -161,7 +165,7 @@ if (empty($last7Days['labels']) || empty($last7Days['calories'])) {
                                 <p class="font-bold text-slate-800"><?= htmlspecialchars($meal['bua'] ?: 'Bữa ăn') ?></p>
                                 <p class="text-xs text-slate-400"><?= intval($meal['items']) ?> món đã lưu</p>
                             </div>
-                            <b class="text-emerald-600"><?= number_format(floatval($meal['calo'])) ?> kcal</b>
+                            <b class="text-emerald-600"><?= formatIntNoComma($meal['calo']) ?> kcal</b>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -180,7 +184,7 @@ if (empty($last7Days['labels']) || empty($last7Days['calories'])) {
                                 <p class="font-bold text-slate-800"><?= htmlspecialchars($food['ten_mon']) ?></p>
                                 <p class="text-xs text-slate-400"><?= intval($food['times']) ?> lần</p>
                             </div>
-                            <b class="text-slate-700"><?= number_format(floatval($food['calo'])) ?> kcal</b>
+                            <b class="text-slate-700"><?= formatIntNoComma($food['calo']) ?> kcal</b>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>

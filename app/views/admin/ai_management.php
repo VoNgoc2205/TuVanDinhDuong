@@ -6,7 +6,7 @@
             <p class="mt-2 text-sm text-slate-500">Theo dõi request, người dùng, lỗi và trạng thái dịch vụ AI.</p>
         </div>
         <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700">
-            <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Monitoring
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Đang giám sát
         </span>
     </div>
 
