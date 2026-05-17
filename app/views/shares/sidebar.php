@@ -34,21 +34,68 @@ if ($avatar !== '') {
         font-size: inherit;
         font-weight: 700;
     }
+
+    #app-mobile-sidebar {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    @media (max-width: 1023px) {
+        #app-mobile-sidebar .app-sidebar-inner {
+            padding: clamp(20px, 5vw, 28px);
+        }
+
+        #app-mobile-sidebar .app-sidebar-logo {
+            gap: clamp(12px, 3vw, 16px);
+            margin-bottom: clamp(28px, 7vh, 48px);
+        }
+
+        #app-mobile-sidebar .app-sidebar-logo-icon {
+            width: clamp(44px, 12vw, 54px);
+            height: clamp(44px, 12vw, 54px);
+        }
+
+        #app-mobile-sidebar .app-sidebar-logo-text {
+            font-size: clamp(1.35rem, 6vw, 1.75rem);
+        }
+
+        #app-mobile-sidebar .app-sidebar-nav a {
+            gap: clamp(12px, 3.8vw, 16px);
+            padding: clamp(12px, 3.4vw, 16px) clamp(14px, 4vw, 20px);
+            font-size: clamp(0.98rem, 4.6vw, 1.08rem);
+            border-radius: 14px;
+        }
+    }
+
+    @media (max-height: 680px) and (max-width: 1023px) {
+        #app-mobile-sidebar .app-sidebar-logo {
+            margin-bottom: 22px;
+        }
+
+        #app-mobile-sidebar .app-sidebar-nav {
+            gap: 4px;
+        }
+
+        #app-mobile-sidebar .app-sidebar-nav a {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+    }
 </style>
 
-<aside class="fixed top-0 left-0 w-[300px] h-screen bg-slate-900 text-slate-300 z-[1100] shadow-2xl flex flex-col">
+<aside id="app-mobile-sidebar" class="fixed top-0 left-0 w-[300px] h-screen bg-slate-900 text-slate-300 z-[1100] shadow-2xl flex flex-col">
 
-    <div class="p-7 flex flex-col h-full">
+    <div class="app-sidebar-inner p-7 flex flex-col min-h-full">
 
         <!-- LOGO -->
-        <a href="index.php" class="flex items-center gap-4 mb-12 group no-underline">
-            <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20 group-hover:rotate-6 transition-transform">
+        <div class="app-sidebar-logo flex items-center gap-4 mb-12 no-underline select-none">
+            <div class="app-sidebar-logo-icon w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
                 <i class="fa fa-leaf text-white text-xl"></i>
             </div>
-            <span class="text-white font-extrabold text-2xl tracking-tight">
+            <span class="app-sidebar-logo-text text-white font-extrabold text-2xl tracking-tight">
                 Nutri<span class="text-green-500">AI</span>
             </span>
-        </a>
+        </div>
 
         <!-- MENU -->
         <nav class="app-sidebar-nav space-y-2 flex-1">

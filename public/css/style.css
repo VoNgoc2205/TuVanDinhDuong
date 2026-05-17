@@ -23,7 +23,8 @@ body {
     backdrop-filter: blur(12px);
 }
 
-aside {
+.app-sidebar-shell > aside,
+#app-mobile-sidebar {
     box-shadow: none !important;
     border-right: none !important;
     background-color: #0F172A;
@@ -37,4 +38,22 @@ aside {
     border: 1px solid #f1f5f9;
     border-radius: 2.5rem !important;
     /* Bo góc cực đại giống mẫu */
+}
+
+/* Responsive header/footer behavior for small devices
+   NOTE: header is intentionally NOT fixed so it can change per-user and scroll naturally. */
+.system-header {
+    position: relative;
+}
+
+@media (max-width: 767px) {
+    /* Keep header in normal flow on small devices so it can adapt with page content */
+    .system-header { position: relative; z-index: 1; }
+
+    /* Small extra spacing for footer */
+    footer { padding-bottom: 28px !important; }
+}
+
+@media (min-width: 768px) {
+    .app-main { padding-top: 0 !important; }
 }

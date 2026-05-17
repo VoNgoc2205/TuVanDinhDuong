@@ -13,6 +13,13 @@ $userAvatar = $_SESSION["user"]["avatar"] ?? "default.jpg";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#10b981">
+    <meta name="application-name" content="NutriAI">
+    <meta name="apple-mobile-web-app-title" content="NutriAI">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" type="image/svg+xml" href="public/icons/nutriai-logo.svg">
+    <link rel="apple-touch-icon" href="public/icons/nutriai-logo-192.png">
+    <link rel="manifest" href="public/manifest.webmanifest">
     <title>NutriAI - Hệ thống dinh dưỡng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -108,30 +115,148 @@ $userAvatar = $_SESSION["user"]["avatar"] ?? "default.jpg";
         ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
 
-        
+        .app-sidebar-shell {
+            --sidebar-width: 300px;
+            width: var(--sidebar-width);
+            flex: 0 0 var(--sidebar-width);
+            background: #0f172a;
+        }
+
+        .mobile-sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 1090;
+            background: rgba(15, 23, 42, 0.52);
+            backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 1023px) {
+            .app-sidebar-shell {
+                display: block !important;
+                width: 0;
+                flex-basis: 0;
+                background: transparent;
+            }
+
+            .app-sidebar-shell > aside {
+                display: flex !important;
+                width: min(320px, calc(100vw - 24px));
+                max-width: calc(100vw - 24px);
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+            }
+
+            body.sidebar-open {
+                overflow: hidden;
+            }
+
+            body.sidebar-open .app-sidebar-shell > aside {
+                transform: translateX(0);
+            }
+        }
+
+        @media (min-width: 480px) and (max-width: 1023px) {
+            .app-sidebar-shell > aside {
+                width: min(340px, 72vw);
+            }
+        }
+
+        @media (max-width: 360px) {
+            .app-sidebar-shell > aside {
+                width: calc(100vw - 16px);
+                max-width: calc(100vw - 16px);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .app-sidebar-shell > aside {
+                transform: none !important;
+            }
+        }
+
+        .install-shortcut-button {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 2500;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border: 0;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #fff;
+            padding: 13px 18px;
+            font-weight: 900;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.24);
+            cursor: pointer;
+        }
+
+        .install-shortcut-button.is-visible {
+            display: inline-flex;
+        }
+
+        @media (max-width: 480px) {
+            .install-shortcut-button {
+                right: 12px;
+                bottom: 12px;
+                max-width: calc(100vw - 24px);
+                padding: 12px 15px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen">
 
-        <aside class="w-[300px] h-full bg-slate-900 flex-shrink-0 hidden md:block">
+        <div class="app-sidebar-shell">
             <?php include "app/views/shares/sidebar.php"; ?>
-        </aside>
+        </div>
 
-        <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-            
-            
+        <div class="flex-1 flex flex-col min-w-0">
+            <?php
+            $currentController = $_GET['controller'] ?? 'default';
+            $currentAction = $_GET['action'] ?? 'index';
 
-            <main class="app-main flex-1 overflow-y-auto p-4 lg:p-8">
+            // Hiển thị header chỉ trên trang chủ và các trang auth (login, register, forgot)
+            $showHeader = false;
+            if ($currentController === 'default' && $currentAction === 'index') {
+                $showHeader = true;
+            }
+            if ($currentController === 'user' && in_array($currentAction, ['login', 'register', 'forgot'])) {
+                $showHeader = true;
+            }
+
+            if ($showHeader) {
+                include "app/views/shares/header.php";
+            } else {
+                // Nếu header đầy đủ không được hiển thị, vẫn hiển thị nút hamburger nhỏ trên mobile
+                ?>
+                <div class="lg:hidden px-4 pt-3">
+                    <button id="mobile-menu-toggle" class="inline-flex items-center justify-center p-2 rounded-lg bg-slate-100 text-slate-700" aria-label="Mở menu" aria-expanded="false" aria-controls="app-mobile-sidebar">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </div>
+                <?php
+            }
+            ?>
+
+            <main class="app-main p-4 lg:p-8">
                 <div class="app-content-shell">
                     <div id="notification-container" class="mb-5 space-y-3"></div>
                     <?php echo $content ?? 'Chưa có nội dung'; ?>
                 </div>
             </main>
 
+            <?php include "app/views/shares/footer.php"; ?>
+
         </div>
     </div>
+    <button type="button" id="installShortcutButton" class="install-shortcut-button" aria-label="Tạo lối tắt NutriAI">
+        <i class="fa fa-mobile-screen-button"></i>
+        <span>Tạo lối tắt</span>
+    </button>
 <style>
 .app-alert {
     display: flex;
@@ -397,6 +522,93 @@ document.addEventListener("submit", function(event) {
         form.submit();
     });
 });
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+}
+
+let installPromptEvent = null;
+const installShortcutButton = document.getElementById("installShortcutButton");
+const isIosDevice = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+const isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+window.addEventListener("beforeinstallprompt", function(event) {
+    event.preventDefault();
+    installPromptEvent = event;
+    installShortcutButton?.classList.add("is-visible");
+});
+
+installShortcutButton?.addEventListener("click", async function() {
+    if (!installPromptEvent) {
+        if (isIosDevice) {
+            alert("Trên iPhone/iPad: nhấn nút Chia sẻ của Safari, sau đó chọn Thêm vào Màn hình chính để tạo lối tắt NutriAI.");
+        }
+        return;
+    }
+
+    installShortcutButton.classList.remove("is-visible");
+    installPromptEvent.prompt();
+    await installPromptEvent.userChoice.catch(() => null);
+    installPromptEvent = null;
+});
+
+window.addEventListener("appinstalled", function() {
+    installShortcutButton?.classList.remove("is-visible");
+    installPromptEvent = null;
+});
+
+if (isIosDevice && !isStandaloneMode) {
+    installShortcutButton?.classList.add("is-visible");
+}
+
+// Mobile sidebar toggle logic
+(function(){
+    function openSidebar() {
+        document.body.classList.add('sidebar-open');
+        const toggle = document.getElementById('mobile-menu-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        // add backdrop
+        if (!document.getElementById('mobile-sidebar-backdrop')) {
+            const b = document.createElement('div');
+            b.id = 'mobile-sidebar-backdrop';
+            b.className = 'mobile-sidebar-backdrop';
+            b.addEventListener('click', closeSidebar);
+            document.body.appendChild(b);
+        }
+    }
+    function closeSidebar() {
+        document.body.classList.remove('sidebar-open');
+        const toggle = document.getElementById('mobile-menu-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        const b = document.getElementById('mobile-sidebar-backdrop');
+        if (b) b.remove();
+    }
+
+    document.addEventListener('click', function(e){
+        const t = e.target.closest('#mobile-menu-toggle');
+        if (t) {
+            e.preventDefault();
+            if (document.body.classList.contains('sidebar-open')) closeSidebar(); else openSidebar();
+        }
+    });
+
+    document.addEventListener('click', function(e){
+        if (window.innerWidth >= 1024) return;
+        if (e.target.closest('.app-sidebar-nav a')) closeSidebar();
+    });
+
+    window.addEventListener('resize', function(){
+        if (window.innerWidth >= 1024) closeSidebar();
+    });
+
+    document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
+            closeSidebar();
+        }
+    });
+})();
 
 <?php if (!empty($_SESSION['flash'])): ?>
 document.addEventListener("DOMContentLoaded", function() {
