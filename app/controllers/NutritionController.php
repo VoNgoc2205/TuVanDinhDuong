@@ -429,6 +429,13 @@ require "app/views/layout.php";
             if ($isPdf) {
                 $pdfText = $this->extractTextFromPdf($tempPath);
                 if ($this->isLowQualityOcrText($pdfText)) {
+                    $pdfOcrText = $this->extractTextFromScannedPdfWithOcr($aiService, $tempPath);
+                    if (!$this->isLowQualityOcrText($pdfOcrText)) {
+                        $pdfText = $pdfOcrText;
+                    }
+                }
+
+                if ($this->isLowQualityOcrText($pdfText)) {
                     @unlink($tempPath);
                     echo json_encode([
                         'success' => false,
@@ -455,9 +462,13 @@ require "app/views/layout.php";
                 $base64Image = base64_encode($imageData);
             }
 
-            $prompt = $buildMedicalPrompt();
-
             if (!$isPdf) {
+                $ocrText = $this->extractTextFromImageWithOcr($aiService, $tempPath);
+                if ($ocrText !== '') {
+                    $extractedData['raw_text'] = $ocrText;
+                }
+
+                $prompt = $buildMedicalPrompt($ocrText);
                 $data = [
                     "model" => "gpt-4o",
                     "response_format" => $medicalJsonSchema,
@@ -540,7 +551,7 @@ require "app/views/layout.php";
 
             if (!$hasMainAnalysis) {
                 $extractedData = $aiService->extractMedicalData($tempPath);
-            } elseif (empty($analysisResult['health_metrics']['raw_text'])) {
+            } elseif (!$isPdf && empty($analysisResult['health_metrics']['raw_text'])) {
                 // Keep OCR text as a fallback display even when top-level analysis exists.
                 $fallbackExtracted = $aiService->extractMedicalData($tempPath);
                 if (!empty($fallbackExtracted['raw_text'])) {
@@ -637,8 +648,7 @@ require "app/views/layout.php";
                 || !empty($analysisResult['loi_khuyen_dinh_duong'])
                 || !empty($analysisResult['ket_qua_xet_nghiem'])
                 || !empty($analysisResult['xquang'])
-                || !empty($analysisResult['lam_sang'])
-                || !empty($analysisResult['health_metrics']['raw_text']);
+                || !empty($analysisResult['lam_sang']);
 
             if (!$finalHasContent) {
                 echo json_encode([
@@ -731,11 +741,9 @@ require "app/views/layout.php";
         $analysis['diagnosis'] = $analysis['diagnosis'] ?? implode(', ', $analysis['chan_doan']);
         $analysis['treatment'] = $analysis['treatment'] ?? $analysis['huong_dieu_tri'];
         $analysis['vitals'] = $analysis['vitals'] ?? $this->stringifyMedicalValue($analysis['chi_so_sinh_hieu']);
-        $analysis['findings'] = $analysis['findings'] ?? trim(implode("\n", array_filter([
-            $analysis['lam_sang'],
-            $analysis['ket_qua_xet_nghiem'],
-            $analysis['xquang'],
-        ])));
+        if (empty($analysis['findings'])) {
+            $analysis['findings'] = '';
+        }
         $analysis['recommendations'] = $analysis['recommendations'] ?? $analysis['loi_khuyen_dinh_duong'];
 
         $analysis['health_metrics'] = $analysis['health_metrics'] ?? [];
@@ -819,6 +827,111 @@ require "app/views/layout.php";
         $text = file_get_contents($txtPath) ?: '';
         @unlink($txtPath);
         return trim($text);
+    }
+
+    private function extractTextFromImageWithOcr(AIService $aiService, string $imagePath): string
+    {
+        $tesseractText = $this->extractTextFromImageWithTesseract($imagePath);
+        if (!$this->isLowQualityOcrText($tesseractText)) {
+            return $tesseractText;
+        }
+
+        $openAiText = $this->extractTextFromImageWithOpenAI($aiService, $imagePath);
+        if (!$this->isLowQualityOcrText($openAiText)) {
+            return $openAiText;
+        }
+
+        return trim($tesseractText . "\n" . $openAiText);
+    }
+
+    private function extractTextFromImageWithTesseract(string $imagePath): string
+    {
+        if (!$this->commandExists('tesseract')) {
+            return '';
+        }
+
+        foreach (['vie+eng', 'eng'] as $language) {
+            $outputFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'medical_ocr_' . uniqid();
+            $command = sprintf(
+                'tesseract %s %s -l %s --psm 6 2>&1',
+                escapeshellarg($imagePath),
+                escapeshellarg($outputFile),
+                escapeshellarg($language)
+            );
+            exec($command, $output, $returnVar);
+
+            $txtPath = $outputFile . '.txt';
+            $text = file_exists($txtPath) ? trim((string)file_get_contents($txtPath)) : '';
+            @unlink($txtPath);
+
+            if ($returnVar === 0 && !$this->isLowQualityOcrText($text)) {
+                return $text;
+            }
+        }
+
+        return '';
+    }
+
+    private function extractTextFromImageWithOpenAI(AIService $aiService, string $imagePath): string
+    {
+        $imageData = @file_get_contents($imagePath);
+        if ($imageData === false) {
+            return '';
+        }
+
+        $mimeType = mime_content_type($imagePath) ?: 'image/jpeg';
+        $response = $aiService->callOpenAI([
+            'model' => 'gpt-4o',
+            'temperature' => 0,
+            'max_tokens' => 1800,
+            'contents' => [[
+                'parts' => [
+                    [
+                        'text' => "OCR hồ sơ bệnh án trong ảnh. Chỉ trả về toàn bộ văn bản đọc được, giữ xuống dòng gần giống ảnh, không giải thích."
+                    ],
+                    [
+                        'inline_data' => [
+                            'mime_type' => $mimeType,
+                            'data' => base64_encode($imageData)
+                        ]
+                    ]
+                ]
+            ]]
+        ]);
+
+        return trim((string)$response);
+    }
+
+    private function extractTextFromScannedPdfWithOcr(AIService $aiService, string $pdfPath): string
+    {
+        if (!class_exists('Imagick')) {
+            return '';
+        }
+
+        $texts = [];
+        for ($page = 0; $page < 3; $page++) {
+            $imagePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'medical_pdf_ocr_' . uniqid() . "_{$page}.png";
+            try {
+                $imagick = new Imagick();
+                $imagick->setResolution(180, 180);
+                $imagick->readImage($pdfPath . '[' . $page . ']');
+                $imagick->setImageFormat('png');
+                $imagick->writeImage($imagePath);
+                $imagick->clear();
+                $imagick->destroy();
+
+                $pageText = $this->extractTextFromImageWithOcr($aiService, $imagePath);
+                if ($pageText !== '') {
+                    $texts[] = "Trang " . ($page + 1) . ":\n" . $pageText;
+                }
+            } catch (Throwable $ex) {
+                break;
+            } finally {
+                @unlink($imagePath);
+            }
+        }
+
+        return trim(implode("\n\n", $texts));
     }
 
     private function commandExists(string $command): bool
