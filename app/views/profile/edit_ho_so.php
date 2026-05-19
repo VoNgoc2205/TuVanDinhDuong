@@ -710,6 +710,7 @@ if (!empty($profile['medical_analysis'])) {
         if (analysis.health_metrics && typeof analysis.health_metrics === 'object') {
             const metrics = { ...analysis.health_metrics };
             delete metrics.medical_record_image;
+            delete metrics.raw_text;
 
             for (const value of Object.values(metrics)) {
                 if (value && !isIgnored(value)) {
@@ -739,6 +740,13 @@ if (!empty($profile['medical_analysis'])) {
         const vitalsObj = analysis.chi_so_sinh_hieu || {};
 
         const normalizeText = (value) => String(value || '').trim();
+        const sameContent = (first, second) => {
+            const clean = (value) => normalizeText(value)
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .replace(/[.,;:]+$/g, '');
+            return clean(first) !== '' && clean(first) === clean(second);
+        };
         const formatReadableLines = (value) => {
             const normalized = normalizeText(value)
                 .replace(/\r/g, '')
@@ -751,12 +759,14 @@ if (!empty($profile['medical_analysis'])) {
 
         const diagnosisText = analysis.diagnosis || (Array.isArray(analysis.chan_doan) ? analysis.chan_doan.join(', ') : analysis.chan_doan) || metrics.chan_doan || '';
         const treatmentText = analysis.huong_dieu_tri || analysis.treatment_plan || '';
-        const prescriptionText = analysis.treatment || analysis.ke_don || metrics.dieu_tri || '';
+        const rawPrescriptionText = analysis.treatment || analysis.ke_don || metrics.dieu_tri || '';
+        const prescriptionText = sameContent(rawPrescriptionText, treatmentText) ? '' : rawPrescriptionText;
         const recommendationText = analysis.recommendations || analysis.loi_khuyen_dinh_duong || '';
         const labText = analysis.ket_qua_xet_nghiem || '';
         const xrayText = analysis.xquang || '';
         const clinicalText = analysis.lam_sang || '';
-        const findingsText = analysis.findings || '';
+        const rawFindingsText = analysis.findings || '';
+        const findingsText = [clinicalText, labText, xrayText].some(value => sameContent(rawFindingsText, value)) ? '' : rawFindingsText;
 
         const canNang = vitalsObj.can_nang || metrics.cannang || '';
         const bmi = vitalsObj.bmi || metrics.bmi || '';
